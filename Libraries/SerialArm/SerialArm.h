@@ -7,25 +7,47 @@
 class SerialArm {
 
     public:
-        SerialArm(HardwareSerial& port, uint8_t enPin);
-        void addJoint(uint8_t ID);
+        SerialArm(HardwareSerial* port, uint8_t enPin);
+        bool addJoint(uint8_t ID);
         uint8_t getNumJoints();
         void start();
         void toggleLED(uint8_t j);
 
-        HardwareSerial serPort;
+        HardwareSerial* serPort;
     private:
 
         // Configuration
-        int enTxPin = 0; // HIGH: Transmitter, LOW: Receiver
-        static const uint8_t MAX_PACK_LEN = 32;
+        static const uint8_t MAX_PACK_LEN = 64;
         static const uint8_t MAX_JOINTS = 8;
-        uint8_t joints[MAX_JOINTS];
+        static const uint8_t MAX_ID = 32;
+
+        uint8_t id2joint[MAX_ID] = {0}; // lookup for ID -> joint ind
+        uint8_t joint2id[MAX_JOINTS] = {0}; // lookup for joint ind -> ID
         uint8_t numJoints = 0;
-        bool led[MAX_JOINTS] = {0};
+        bool led[MAX_JOINTS] = {0}; // LED state of each joint
+        uint8_t errCode[MAX_JOINTS] = {0}; // error codes for joint motors
+        uint8_t lastID = 0; // ID of sender of last packet
+        uint8_t lastCom = 0; // last command received
+        uint8_t data[MAX_PACK_LEN] = {0}; // last data received
+        uint8_t dataLen = 0;
+
+        int enTxPin = 0; // HIGH: Transmitter, LOW: Receiver
+        long BAUD = 1000000; // serial baud rate in bps
+        long SER_TIMEOUT = 10000; // timeout in us
+
+        // Error codes for parsing serial responses
+        enum COM_ERR_ENUM {
+            NO_ERR,
+            TIMEOUT,
+            HEADER,
+            DATA_LEN,
+            CRC,
+            JNT_ERR
+        } COM_ERR;
 
 
         void sendPacket(uint8_t ID, uint8_t COM, uint8_t* data, uint16_t len);
+        bool parseResponse();
 
         /*
          * CRC calculation function from Dynamixel datasheet
