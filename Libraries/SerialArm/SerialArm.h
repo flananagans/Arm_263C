@@ -12,15 +12,23 @@ class SerialArm {
         uint8_t getNumJoints();
         void start();
         void toggleLED(uint8_t j);
+        void toggleLED(void);
+        bool enable();
+        bool disable();
+        void configure(uint8_t del, uint8_t mode, float v_max);
+        void setV(float* v);
 
-        HardwareSerial* serPort;
+        bool enabled = false;
     private:
 
         // Configuration
         static const uint8_t MAX_PACK_LEN = 64;
         static const uint8_t MAX_JOINTS = 8;
         static const uint8_t MAX_ID = 32;
+        float MAX_V = 12.0;
+        static constexpr float MAX_PWM = 885.0;
 
+        uint8_t BCST_ID = 0xFE; // Used to broadcast message to all joints
         uint8_t id2joint[MAX_ID] = {0}; // lookup for ID -> joint ind
         uint8_t joint2id[MAX_JOINTS] = {0}; // lookup for joint ind -> ID
         uint8_t numJoints = 0;
@@ -31,9 +39,16 @@ class SerialArm {
         uint8_t data[MAX_PACK_LEN] = {0}; // last data received
         uint8_t dataLen = 0;
 
+        HardwareSerial* serPort;
         int enTxPin = 0; // HIGH: Transmitter, LOW: Receiver
         long BAUD = 1000000; // serial baud rate in bps
         long SER_TIMEOUT = 10000; // timeout in us
+
+        // Union for converting floats to bytes
+        union f_b_union {
+            float f;
+            uint8_t b[sizeof(float)];
+        };
 
         // Error codes for parsing serial responses
         enum COM_ERR_ENUM {
@@ -45,9 +60,30 @@ class SerialArm {
             JNT_ERR
         } COM_ERR;
 
+        // Command codes
+        uint8_t R_REG = 0x02;
+        uint8_t W_REG = 0x03;
+        uint8_t SYNC_WT = 0x83;
+        uint8_t F_SYNC_RD = 0x8A;
+        uint8_t F_BULK_WT = 0x9A;
+        
+        // Register indices
+        uint8_t IDX_RETDEL = 9; // return delay time
+        uint8_t IDX_OPMODE = 11; // operation mode
+        uint8_t IDX_EN = 64; // torque enable
+        uint8_t IDX_LED = 65; // LED on/off
+        uint8_t IDX_STATRET = 68; // status return behavior
+        uint8_t IDX_PWMGOAL = 100; // set PWM goal
+        uint8_t IDX_VEL = 128; // current velocity
+        uint8_t IDX_POS = 132; // current position
+
 
         void sendPacket(uint8_t ID, uint8_t COM, uint8_t* data, uint16_t len);
+        uint8_t createSyncWriteBuf(uint8_t* buf, uint16_t IDX, uint8_t data[][MAX_JOINTS], uint8_t len_per);
+        void writeAllSame(uint8_t idx, uint8_t* data_per, uint8_t len_per);
+        void writeAllDiff(uint8_t idx, uint8_t data[][SerialArm::MAX_JOINTS], uint8_t len_per);
         bool parseResponse();
+        //bool parseBulkResponse();
 
         /*
          * CRC calculation function from Dynamixel datasheet
