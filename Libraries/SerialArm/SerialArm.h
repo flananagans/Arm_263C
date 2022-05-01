@@ -17,6 +17,9 @@ class SerialArm {
         bool disable();
         void configure(uint8_t del, uint8_t mode, float v_max);
         void setV(float* v);
+        float getPos(uint8_t j);
+        void getAllPos(float* pos);
+        float getVel(uint8_t j);
 
         bool enabled = false;
     private:
@@ -27,6 +30,8 @@ class SerialArm {
         static const uint8_t MAX_ID = 32;
         float MAX_V = 12.0;
         static constexpr float MAX_PWM = 885.0;
+        static constexpr float ENC_PER_REV = 4096.0;
+        static constexpr float VEL_UNIT_RPM = 0.229;
 
         uint8_t BCST_ID = 0xFE; // Used to broadcast message to all joints
         uint8_t id2joint[MAX_ID] = {0}; // lookup for ID -> joint ind
@@ -34,27 +39,32 @@ class SerialArm {
         uint8_t numJoints = 0;
         bool led[MAX_JOINTS] = {0}; // LED state of each joint
         uint8_t errCode[MAX_JOINTS] = {0}; // error codes for joint motors
-        uint8_t lastID = 0; // ID of sender of last packet
-        uint8_t lastCom = 0; // last command received
-        uint8_t data[MAX_PACK_LEN] = {0}; // last data received
-        uint8_t dataLen = 0;
+        uint8_t lastRecID = 0; // ID of sender of last packet
+        uint8_t lastRecJoint = 0; // Joint number of last joint heard from 
+        uint8_t lastCom[MAX_JOINTS] = {0}; // last command received for each joint
+        uint8_t recData[MAX_PACK_LEN][MAX_JOINTS]; // last data received from each joint
+        uint8_t recDataLen[MAX_JOINTS] = {0};
 
         HardwareSerial* serPort;
         int enTxPin = 0; // HIGH: Transmitter, LOW: Receiver
         long BAUD = 1000000; // serial baud rate in bps
-        long SER_TIMEOUT = 10000; // timeout in us
+        long SER_TIMEOUT = 1000; // timeout in us
 
         // Union for converting floats to bytes
         union f_b_union {
             float f;
             uint8_t b[sizeof(float)];
         };
+        
+        f_b_union packHeader; // header of each packet is 4 bytes so store in a float union
+        static const uint8_t HEADER_LEN = sizeof(float);
 
         // Error codes for parsing serial responses
         enum COM_ERR_ENUM {
             NO_ERR,
             TIMEOUT,
-            HEADER,
+            INCOMPLETE,
+            BAD_ID,
             DATA_LEN,
             CRC,
             JNT_ERR
@@ -65,7 +75,6 @@ class SerialArm {
         uint8_t W_REG = 0x03;
         uint8_t SYNC_WT = 0x83;
         uint8_t F_SYNC_RD = 0x8A;
-        uint8_t F_BULK_WT = 0x9A;
         
         // Register indices
         uint8_t IDX_RETDEL = 9; // return delay time
@@ -77,13 +86,14 @@ class SerialArm {
         uint8_t IDX_VEL = 128; // current velocity
         uint8_t IDX_POS = 132; // current position
 
-
-        void sendPacket(uint8_t ID, uint8_t COM, uint8_t* data, uint16_t len);
+        void sendPacket(uint8_t id, uint8_t com, uint8_t* data, uint16_t len);
         uint8_t createSyncWriteBuf(uint8_t* buf, uint16_t IDX, uint8_t data[][MAX_JOINTS], uint8_t len_per);
         void writeAllSame(uint8_t idx, uint8_t* data_per, uint8_t len_per);
         void writeAllDiff(uint8_t idx, uint8_t data[][SerialArm::MAX_JOINTS], uint8_t len_per);
-        bool parseResponse();
-        //bool parseBulkResponse();
+        bool checkForHeader(void);
+        uint8_t collectPacket(uint8_t* pack);
+        bool parseSingleResponse();
+        bool parseBulkResponse(uint8_t len_per);
 
         /*
          * CRC calculation function from Dynamixel datasheet
