@@ -69,14 +69,14 @@ void SerialArm::sendPacket(uint8_t id, uint8_t com, uint8_t* data, uint16_t data
     uint16_t crc = SerialArm::updateCRC(0, &pack[0], 8 + dataLen);
     pack[dataLen + 8] = (uint8_t)crc;
     pack[dataLen + 9] = (uint8_t)(crc >> 8);  
-    
+/*    
     Serial.print("Sent: ");
     for(uint8_t i = 0; i < dataLen + 10; i++) {
         Serial.print(pack[i], HEX);
         Serial.print(',');
     }
     Serial.println();
-    
+*/    
     // Send the packet
     digitalWrite(this->enTxPin, HIGH);
     this->serPort->write(&pack[0], dataLen + 10);
@@ -158,9 +158,10 @@ bool SerialArm::checkForHeader() {
         if(this->serPort->available() > 0) {
             headBuf[headInd] = this->serPort->read(); // Write to the first half of the buffer
 
+            /*
             Serial.print(headBuf[headInd], HEX);
             Serial.print(",");
-
+            */
             headBuf[headInd + HEADER_LEN] = headBuf[headInd]; // Copy to the second half of the buffer
             headInd++;
 
@@ -181,7 +182,7 @@ bool SerialArm::checkForHeader() {
         }
         del = micros() - startTime;
     }
-    Serial.println();
+    //Serial.println();
     if(del >= this->SER_TIMEOUT) { //We didn't get the complete header
         return 0;
     }
@@ -210,7 +211,8 @@ uint8_t SerialArm::collectPacket(uint8_t* pack) {
             switch(packLen) {
                 case HEADER_LEN + 1: // ID byte
                     this->lastRecID = pack[packLen - 1];
-                    this->lastRecJoint = (this->lastRecID < MAX_ID) ? this->id2joint[this->lastRecID] : (this->numJoints + 1);
+                    this->lastRecJoint = (this->lastRecID < MAX_ID) ? 
+                                          this->id2joint[this->lastRecID] : (this->numJoints + 1);
                     break;
                 case HEADER_LEN + 3: // Length bytes
                     len = (pack[packLen - 1] << 8) + pack[packLen - 2];
@@ -297,81 +299,6 @@ bool SerialArm::parseSingleResponse() {
 }
 
 /*
- * Parse a bulk response (fast sync read)
- *
- *  len_per - length (in bytes) of expected data from each joint
- */
-bool SerialArm::parseBulkResponse(uint8_t len_per) {
-
-    this->COM_ERR = NO_ERR;
-    
-    // Check for header
-    if(!this->checkForHeader()) { //We didn't get the complete header
-        Serial.println("hola");
-        this->COM_ERR = TIMEOUT;
-        return 0;
-    }
-
-    // Collect packet
-    uint8_t pack[SerialArm::MAX_PACK_LEN] = {0};
-    uint8_t packLen = this->collectPacket(&pack[0]);
-    if(!packLen) { //We didn't get the complete packet
-        this->COM_ERR = INCOMPLETE;
-        Serial.println("hola2");
-        return 0;
-    }
-
-    // Check the ID of the packet
-    if(this->lastRecJoint != this->numJoints + 1) {
-        this->COM_ERR = BAD_ID;
-        return 0;
-    }
-
-    Serial.print("Received ");
-    Serial.print(packLen);
-    Serial.print(" bytes: ");
-    for(uint8_t i = 0; i < packLen; i++) {
-        Serial.print(pack[i], HEX);
-        Serial.print(',');
-    }
-    Serial.println();
-
-    uint16_t paramLen = (pack[HEADER_LEN + 2] << 8) + pack[HEADER_LEN + 1];
-    // Check CRC
-    uint16_t crc = (pack[packLen - 1] << 8) + pack[packLen - 2];
-    if(crc != SerialArm::updateCRC(0, &pack[0], 5 + paramLen)) {
-        this->COM_ERR = CRC;
-        Serial.println("hola3");
-        return 0;
-    }
-    
-    // Parse through params
-    uint8_t startParamInd = HEADER_LEN + 4; // header + BCST_ID + 2 length bytes + overall com (0x55)
-    for(uint8_t j = 0; j < this->numJoints; j++) {
-
-        uint16_t startInd = startParamInd + j*(len_per + 4); // each joint has len_per data + err byte + 2 crc bytes 
-
-        // ID
-        uint8_t id = pack[startInd + 1];
-
-        // Error code
-        this->errCode[this->id2joint[id]] = pack[startInd];
-        if(this->errCode[this->id2joint[id]] != 0) {
-            this->COM_ERR = JNT_ERR;
-            return 0;
-        }
-
-        // Fill with new data
-        for(uint8_t i = 0; i < len_per; i++) { 
-            this->recData[i][this->id2joint[id]] = pack[startInd + 2 + i]; 
-        }
-        this->recDataLen[this->id2joint[id]] = len_per;
-    }
-
-    return 1;
-}
-
-/*
  * Toggle the LED for a specific joint
  */
 void SerialArm::toggleLED(uint8_t j) {
@@ -434,7 +361,7 @@ void SerialArm::configure(uint8_t del, uint8_t mode, float v_max) {
     this->writeAllSame(IDX_OPMODE, &data_per[0], (uint8_t)1);
 
     // Status return level
-    data_per[0] = 3; //return status for ping and read instructions only
+    data_per[0] = 2; //return status for ping and read instructions only
     this->writeAllSame(IDX_STATRET, &data_per[0], (uint8_t)1);
 
     // Voltage limit
@@ -473,37 +400,37 @@ void SerialArm::setV(float* v) {
  */
 float SerialArm::getPos(uint8_t j) {
 
-  uint8_t data[4] = {IDX_POS, 0x00, sizeof(float), 0};
+    uint8_t data[4] = {IDX_POS, 0x00, sizeof(float), 0};
 
-  // Send the command
-  this->sendPacket(this->joint2id[j], R_REG, &data[0], sizeof(float));
-  // Parse the response
-  if(this->parseSingleResponse()) {
-    
-    /*
-    Serial.print("Data from ID ");
-    Serial.print(this->lastRecID, HEX);
-    Serial.print(": ");
-    for(uint8_t i = 0; i < this->recDataLen[this->lastRecJoint]; i++) {
-        Serial.print(this->recData[i][this->lastRecJoint], HEX);
-        Serial.print(',');
+    // Send the command
+    this->sendPacket(this->joint2id[j], R_REG, &data[0], sizeof(float));
+
+    // Parse the response
+    if(this->parseSingleResponse()) {
+
+        /*
+        Serial.print("Data from ID ");
+        Serial.print(this->lastRecID, HEX);
+        Serial.print(": ");
+        for(uint8_t i = 0; i < this->recDataLen[this->lastRecJoint]; i++) {
+            Serial.print(this->recData[i][this->lastRecJoint], HEX);
+            Serial.print(',');
+        }
+        Serial.println();
+        */
+
+        int32_t pos = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
+                      (this->recData[1][j] << 8) + (this->recData[0][j]); 
+
+        return pos*(2*3.14159)/(ENC_PER_REV);
     }
-    Serial.println();
-    */
-
-    int32_t pos = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
-                  (this->recData[1][j] << 8) + (this->recData[0][j]); 
-
-    return pos*(2*3.14159)/(ENC_PER_REV);
-  } else {
-      /*
+    /*
     Serial.print("COM_ERR for ID ");
     Serial.print(this->lastRecID, HEX);
     Serial.print(": ");
     Serial.println(this->COM_ERR);
     */
     return std::nanf("");
-  }
 
 }
 
@@ -513,42 +440,32 @@ float SerialArm::getPos(uint8_t j) {
  */
 void SerialArm::getAllPos(float* pos) {
 
-  uint8_t data[4 + this->numJoints] = {IDX_POS, 0x00, sizeof(float), 0};
-  for(uint8_t j = 0; j < this->numJoints; j++) {
-    data[4 + j] = this->joint2id[j]; // Fill buffer with the joint IDs
-  }
+    uint8_t data[4 + this->numJoints] = {IDX_POS, 0x00, sizeof(float), 0};
+    for(uint8_t j = 0; j < this->numJoints; j++) {
+        data[4 + j] = this->joint2id[j]; // Fill buffer with the joint IDs
+    }
 
-  // Send the command
-  this->sendPacket(BCST_ID, F_SYNC_RD, &data[0], 4 + this->numJoints);
-  // Parse the response
-  if(this->parseBulkResponse(sizeof(float))) {
-    
-    for (uint8_t j = 0; j < this->numJoints; j++) {
-        int32_t pos_i = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
-                      (this->recData[1][j] << 8) + (this->recData[0][j]); 
+    // Send the command
+    this->sendPacket(BCST_ID, SYNC_RD, &data[0], 4 + this->numJoints);
 
-        pos[j] = pos_i*(2*3.14159)/(ENC_PER_REV); 
+    // Parse the response
+    for (uint8_t i = 0; i < this->numJoints; i++) {
+        if(this->parseSingleResponse()) {
 
-        /*
-        Serial.print("Data from ID ");
-        Serial.print(this->joint2id[id], HEX);
-        Serial.print(": ");
-        for(uint8_t i = 0; i < this->recDataLen[j]; i++) {
-            Serial.print(this->recData[i][j], HEX);
-            Serial.print(',');
+            uint8_t j = this->id2joint[this->lastRecID];
+            int32_t pos_i = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
+                            (this->recData[1][j] << 8) + (this->recData[0][j]); 
+
+            pos[j] = pos_i*(2*3.14159)/(ENC_PER_REV); 
+
+        } else {
+
+            for (uint8_t j = 0; j < this->numJoints; j++) {
+                pos[j] = std::nanf(""); 
+            }
+            break;
         }
-        Serial.println();
-        */
     }
-  } else {
-    for (uint8_t j = 0; j < this->numJoints; j++) {
-        /*
-        Serial.print("COM_ERR: ");
-        Serial.println(this->COM_ERR);
-        */
-        pos[j] = std::nanf(""); 
-    }
-  }
 }
 
 /*
@@ -556,36 +473,50 @@ void SerialArm::getAllPos(float* pos) {
  */
 float SerialArm::getVel(uint8_t j) {
 
-  uint8_t data[4] = {IDX_VEL, 0x00, sizeof(float), 0};
+    uint8_t data[4] = {IDX_VEL, 0x00, sizeof(float), 0};
 
-  // Send the command
-  this->sendPacket(this->joint2id[j], R_REG, &data[0], sizeof(float));
-  // Parse the response
-  if(this->parseSingleResponse()) {
-    
-    /*
-    Serial.print("Data from ID ");
-    Serial.print(this->lastRecID, HEX);
-    Serial.print(": ");
-    for(uint8_t i = 0; i < this->recDataLen[this->lastRecJoint]; i++) {
-        Serial.print(this->recData[i][this->lastRecJoint], HEX);
-        Serial.print(',');
+    // Send the command
+    this->sendPacket(this->joint2id[j], R_REG, &data[0], sizeof(float));
+
+    // Parse the response
+    if(this->parseSingleResponse()) {
+
+        int32_t vel = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
+                      (this->recData[1][j] << 8) + (this->recData[0][j]); 
+
+        return vel*(2*3.14159)*(VEL_UNIT_RPM)/60; // rad/s
     }
-    Serial.println();
-    */
-
-    int32_t vel = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
-                  (this->recData[1][j] << 8) + (this->recData[0][j]); 
-
-    return vel*(2*3.14159)*(VEL_UNIT_RPM)/60; // rad/s
-  } else {
-      /*
-    Serial.print("COM_ERR for ID ");
-    Serial.print(this->lastRecID, HEX);
-    Serial.print(": ");
-    Serial.println(this->COM_ERR);
-    */
     return std::nanf("");
-  }
+}
 
+/*
+ * Get velocity from all joints 
+ *  Fills the pointer to a 1 x numJoints float array with velocity in rad/s
+ */
+void SerialArm::getAllVel(float* vel) {
+
+    uint8_t data[4 + this->numJoints] = {IDX_VEL, 0x00, sizeof(float), 0};
+    for(uint8_t j = 0; j < this->numJoints; j++) {
+        data[4 + j] = this->joint2id[j]; // Fill buffer with the joint IDs
+    }
+
+    // Send the command
+    this->sendPacket(BCST_ID, SYNC_RD, &data[0], 4 + this->numJoints);
+
+    // Parse the response
+    for (uint8_t i = 0; i < this->numJoints; i++) {
+        if(this->parseSingleResponse()) {
+
+            uint8_t j = this->id2joint[this->lastRecID];
+            int32_t vel_i = (this->recData[3][j] << 24) + (this->recData[2][j] << 16) +
+                            (this->recData[1][j] << 8) + (this->recData[0][j]); 
+
+            vel[j] = vel_i*(2*3.14159)*(VEL_UNIT_RPM)/60; // rad/s
+        } else {
+            for (uint8_t j = 0; j < this->numJoints; j++) {
+                vel[j] = std::nanf(""); 
+            }
+            break;
+        }
+    }
 }

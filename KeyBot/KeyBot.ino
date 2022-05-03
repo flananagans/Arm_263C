@@ -18,7 +18,7 @@ void setup() {
   //Serial.print("Arm configured with ");
   //Serial.print(arm.getNumJoints());
   //Serial.println(" joints");
-
+  Serial.println("pos_1, vel_1, pos_2, vel_2");
   arm.enable();
 
   t0 = millis();
@@ -28,22 +28,28 @@ void setup() {
 }
 
 void loop() {
-  float phs = (2*PI)*fmod( (millis() - t0)/1000.0, 1.0);
-  float V_goal[2] = {V_MAX/2*cos(phs), V_MAX/2*sin(phs)};
   long tmr = micros();
-  //arm.setV(&V_goal[0]);
-  //delayMicroseconds(500);
-  //float pos1 = arm.getPos(0);
-  //float pos2 = arm.getPos(1);
-  float pos_arr[2] = {0};
-  arm.getAllPos(&pos_arr[0]);
-  //float vel = arm.getVel(1);
+
+  // Get current position
+  float pos[2] = {0};
+  arm.getAllPos(&pos[0]);
+
+  // Get current velocity
+  float vel[2] = {0};
+  arm.getAllVel(&vel[0]);
+
   char buffer[64];
   int n = sprintf(&buffer[0], "%0.3f,%0.3f,%0.3f,%0.3f", 
-        0, pos_arr[0], 0, pos_arr[1]);
+        pos[0], vel[0], pos[1], vel[1]);
   Serial.println(buffer);
+  
+  // Set command voltage
+  float phs = (2*PI)*fmod( (millis() - t0)/1000.0, 1.0);
+  float V_goal[2] = {V_MAX/2*cos(phs), V_MAX/2*sin(phs)};
+  //arm.setV(&V_goal[0]);
+  
   tmr = micros() - tmr;
-  Serial.println(tmr);
-  //delayMicroseconds(2000-tmr);
-  delay(5000);
+  //Serial.println(tmr);
+  delayMicroseconds(2000-tmr);
+  //delay(5000);
 }

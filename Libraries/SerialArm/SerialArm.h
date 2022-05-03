@@ -20,6 +20,7 @@ class SerialArm {
         float getPos(uint8_t j);
         void getAllPos(float* pos);
         float getVel(uint8_t j);
+        void getAllVel(float* vel);
 
         bool enabled = false;
     private:
@@ -73,8 +74,8 @@ class SerialArm {
         // Command codes
         uint8_t R_REG = 0x02;
         uint8_t W_REG = 0x03;
+        uint8_t SYNC_RD = 0x82;
         uint8_t SYNC_WT = 0x83;
-        uint8_t F_SYNC_RD = 0x8A;
         
         // Register indices
         uint8_t IDX_RETDEL = 9; // return delay time
@@ -93,7 +94,6 @@ class SerialArm {
         bool checkForHeader(void);
         uint8_t collectPacket(uint8_t* pack);
         bool parseSingleResponse();
-        bool parseBulkResponse(uint8_t len_per);
 
         /*
          * CRC calculation function from Dynamixel datasheet
