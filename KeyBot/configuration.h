@@ -23,9 +23,26 @@
 
 /////////////////////////////////////////////////////
 //
+// CONTROL CONFIGURATION
+//
+#define C_FREQ 100
+#define ERR_THRESH 1e-4f
+
+/////////////////////////////////////////////////////
+//
 // ARM CONFIGURATION
 //
 #define PORT_ARM Serial1
+#define NUM_JOINTS 2
+// Joint lengths
+#define LINK_1_L 0.280f
+#define LINK_2_L 0.200f
+// Joint limits
+#define J1_MINANG -1.5708f
+#define J1_MAXANG 1.5708f
+#define J2_MINANG 0.0f
+#define J2_MAXANG 2.6f
+#define EPS 1e-10f
 
 // FIRMWARE INFO STRING
 #define STRINGIFY(x) #x

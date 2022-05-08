@@ -2,10 +2,14 @@
 #define SERIALCOMMAND_H
 
 #include <Arduino.h>
+#include <SerialCommand.h> 
 
-#include <SerialCommand.h>  // Due to the way the Arduino IDE compiles
+#include "KeyBot.h"
+#include "arm.h"
+#include "kinematics.h"
+#include "controller.h"
 
-namespace SerialCom{
+namespace SerialCom {
 
 void start(void);
 
@@ -15,6 +19,10 @@ extern long startTime;
 void INFO(void);
 void disableArm(void);
 void enableArm(void);
+void setQ(void);
+void setV(void);
+void testFK(void);
+void testIK(void);
 
 void unrecognized();
 void unrecognized(const char *command);

@@ -1,11 +1,8 @@
-#include "KeyBot.h"
 #include "serialcommand.h"
-
-#include "arm.h"
 
 char strbuffer[STRBUFFERSIZE];
 
-namespace SerialCom{
+namespace SerialCom {
 
   SerialCommand sCmd;
 
@@ -15,7 +12,7 @@ namespace SerialCom{
   long startTime = 0;
 
   /********************** Threads *********************************/
-  //To process //Serial commands
+  //To process Serial commands
   static THD_WORKING_AREA(waReadSerial_T, 1024);
 	static THD_FUNCTION(ReadSerial_T, arg) {
     while(1){
@@ -36,6 +33,10 @@ namespace SerialCom{
     sCmd.addCommand("INFO", INFO);  // Display information about the firmware
     sCmd.addCommand("DIS", disableArm);
     sCmd.addCommand("EN", enableArm);
+    sCmd.addCommand("S_Q", setQ); // set joint angles
+    sCmd.addCommand("S_V", setV); // set motor voltages
+    sCmd.addCommand("FK", testFK);
+    sCmd.addCommand("IK", testIK);
     
     sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?")
     Serial.println("Serial Commands are ready");
@@ -56,6 +57,98 @@ void disableArm() {
 
 void enableArm() {
   Arm::enable();
+}
+
+/*
+ * Set desired joint angles
+ */
+void setQ() {
+  
+  float q[2] = {0};
+  // Collect additional arguments
+  char* arg;
+  arg = sCmd.next();
+  if(arg != NULL) {
+    q[0] = atof(arg);  
+  }
+  arg = sCmd.next();
+  if(arg != NULL) {
+    q[1] = atof(arg); 
+  }
+
+  Controller::setQGoal(&q[0]);
+}
+
+/*
+ * Set voltage of the motors
+ */
+void setV() {
+  
+  float v[2] = {0};
+  // Collect additional arguments
+  char* arg;
+  arg = sCmd.next();
+  if(arg != NULL) {
+    v[0] = atof(arg);  
+  }
+  arg = sCmd.next();
+  if(arg != NULL) {
+    v[1] = atof(arg); 
+  }
+
+  Arm::setV(&v[0]);
+}
+
+/*
+ * Function for testing forward kinematics
+ */
+void testFK() {
+
+  float q[2] = {0};
+  // Collect additional arguments
+  char* arg;
+  arg = sCmd.next();
+  if(arg != NULL) {
+    q[0] = atof(arg);  
+  }
+  arg = sCmd.next();
+  if(arg != NULL) {
+    q[1] = atof(arg); 
+  }
+
+  if(Kine::fkine(&q[0])) {
+    Serial.print(Kine::last_p[0], 3);
+    Serial.print(",");
+    Serial.println(Kine::last_p[1], 3);
+  } else {
+    Serial.println("FKINE FAILED");
+  }
+}
+
+/*
+ * Function for testing inverse kinematics
+ */
+void testIK() {
+
+  float p[2] = {0};
+  // Collect additional arguments
+  char* arg;
+  arg = sCmd.next();
+  if(arg != NULL) {
+    p[0] = atof(arg);  
+  }
+  arg = sCmd.next();
+  if(arg != NULL) {
+    p[1] = atof(arg);  
+  }
+
+  if(Kine::ikine(&p[0])) {
+    Serial.print(Kine::last_q[0], 3);
+    Serial.print(",");
+    Serial.println(Kine::last_q[1], 3);
+  } else {
+    Serial.println("IKINE FAILED");
+  }
 }
 
 // This gets set as the default handler, and gets called when no other command matches.

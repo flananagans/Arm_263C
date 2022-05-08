@@ -1,7 +1,9 @@
 #ifndef DYNAMICS_H
 #define DYNAMICS_H
 
-namespace Dyn{
+#include "KeyBot.h"
+
+namespace Dyn {
 
 }
 
