@@ -14,8 +14,6 @@ namespace Arm {
   float curr_q[2] = {0};
   // Current velocity
   float curr_dq[2] = {0};
-  // Current time
-  float curr_t = 0.0;
 
   void start() {
     
@@ -43,22 +41,11 @@ namespace Arm {
    *  Access values through two extern arrays
    */
   bool updateState() {
-
-    curr_t = (micros() - KeyBot::t0)/(1e6); // time in ms
     arm.getAllPos(&curr_q[0]);
     arm.getAllVel(&curr_dq[0]);
 
     if(isnan(curr_q[0]) || isnan(curr_dq[0])) {
       return false;
-    }
-
-    Serial.print("q: ");
-    Serial.print(curr_q[0]);
-    Serial.print(",");
-    Serial.println(curr_q[1]);
-    
-    if(SDCARD) {
-      // Save to SD
     }
     return true;
   }
@@ -69,14 +56,5 @@ namespace Arm {
    */
   void setV(float* v_d) {
     arm.setV(v_d);
-    
-    Serial.print("v: ");
-    Serial.print(v_d[0]);
-    Serial.print(",");
-    Serial.println(v_d[1]);
-    
-    if(SDCARD) {
-      // Save to SD
-    }
   }
 }

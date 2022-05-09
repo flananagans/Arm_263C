@@ -8,6 +8,7 @@
 #include "arm.h"
 #include "kinematics.h"
 #include "controller.h"
+#include "trajectory.h"
 
 namespace SerialCom {
 
@@ -23,6 +24,7 @@ void setQ(void);
 void setV(void);
 void testFK(void);
 void testIK(void);
+void setKey(void);
 
 void unrecognized();
 void unrecognized(const char *command);

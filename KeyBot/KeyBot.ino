@@ -45,6 +45,9 @@ namespace KeyBot {
     Arm::start();
     SerialCom::start();
     Controller::start();
+    if(SDCARD) {
+      SDCard::start();
+    }
   }
 }
 

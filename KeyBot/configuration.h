@@ -25,8 +25,9 @@
 //
 // CONTROL CONFIGURATION
 //
-#define C_FREQ 100
-#define ERR_THRESH 1e-4f
+#define C_FREQ 500
+#define ERR_THRESH 0.1f
+#define VEL_THRESH 0.05f
 
 /////////////////////////////////////////////////////
 //
@@ -50,6 +51,6 @@
 #define FIRMWARE_INFO "KeyBot v0.1" TOSTRING(FIRMWARE_VERSION)
 
 // Enable SD Card
-#define SDCARD false
+#define SDCARD true
 
 #endif

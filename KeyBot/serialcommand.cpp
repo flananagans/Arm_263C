@@ -8,7 +8,7 @@ namespace SerialCom {
 
   thread_t *readSerial = NULL;
 
-  int freq = 10;
+  float freq = 10.0;
   long startTime = 0;
 
   /********************** Threads *********************************/
@@ -37,6 +37,7 @@ namespace SerialCom {
     sCmd.addCommand("S_V", setV); // set motor voltages
     sCmd.addCommand("FK", testFK);
     sCmd.addCommand("IK", testIK);
+    sCmd.addCommand("S_K", setKey); // set desired key
     
     sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?")
     Serial.println("Serial Commands are ready");
@@ -149,6 +150,22 @@ void testIK() {
   } else {
     Serial.println("IKINE FAILED");
   }
+}
+
+/*
+ * Set the desired key to press
+ */
+void setKey() {
+  float pos[2] = {0};
+  // Collect additional arguments
+  char* arg;
+  arg = sCmd.next();
+  if(arg != NULL) {
+    Traj::getCoord(&pos[0], *arg);  
+  }
+  Serial.print(pos[0], 3);
+  Serial.print(",");
+  Serial.println(pos[1], 3);
 }
 
 // This gets set as the default handler, and gets called when no other command matches.

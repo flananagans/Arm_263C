@@ -6,27 +6,29 @@ namespace Controller {
 
   bool goal_reached = true;
 
+  float t = 0;
+
   // Desired values
-  float q_des_arr[2] = {0};
-  float dq_des_arr[2] = {0};
-  float ddq_des_arr[2] = {0};
-  Eigen::Map<Eigen::Vector2f> q_des(&q_des_arr[0], 2);
-  Eigen::Map<Eigen::Vector2f> dq_des(&dq_des_arr[0], 2);
-  Eigen::Map<Eigen::Vector2f> ddq_des(&dq_des_arr[0], 2);
+  float q_des_arr[2];
+  float dq_des_arr[2];
+  float ddq_des_arr[2];
+  Eigen::Map<Eigen::Vector2f> q_des(&q_des_arr[0]);
+  Eigen::Map<Eigen::Vector2f> dq_des(&dq_des_arr[0]);
+  Eigen::Map<Eigen::Vector2f> ddq_des(&dq_des_arr[0]);
 
   // Current values
   float q_arr[2];
   float dq_arr[2];
-  Eigen::Map<Eigen::Vector2f> q(&q_arr[0], 2);
-  Eigen::Map<Eigen::Vector2f> dq(&dq_arr[0], 2);
+  Eigen::Map<Eigen::Vector2f> q(&q_arr[0]);
+  Eigen::Map<Eigen::Vector2f> dq(&dq_arr[0]);
 
   // Control variable
   Eigen::Vector2f q_err;
   float v_arr[2] = {0};
-  Eigen::Map<Eigen::Vector2f> v(&v_arr[0], 2);
+  Eigen::Map<Eigen::Vector2f> v(&v_arr[0]);
 
   // Gain Matrices
-  float Kp_arr[2] = {5,5};
+  float Kp_arr[2] = {10, 10};
   float Kd_arr[2] = {0.5, 0.5};
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
@@ -36,10 +38,23 @@ namespace Controller {
   static THD_WORKING_AREA(waControl_T, 2048);
   static THD_FUNCTION(Control_T, arg) {
     while(1){
+      chSysLockFromISR();
       systime_t loop_beg = chVTGetSystemTime();
       
+      t = (micros() - KeyBot::t0)/(1e6); // Time in s
       simplePD_JS();
+
+      // Send the current state to the SD buffer for saving
+      if(SDCARD && !goal_reached) {
+        controllerState cState;
+        cState.t = t;
+        memcpy(&cState.q[0], &q_arr[0], sizeof(float)*NUM_JOINTS);
+        memcpy(&cState.q_des[0], &q_des_arr[0], sizeof(float)*NUM_JOINTS);
+        memcpy(&cState.v[0], &v_arr[0], sizeof(float)*NUM_JOINTS);
+        SDCard::cStateBuffer.append(&cState);
+      }
       
+      chSysUnlockFromISR();
       // Loop at constant frequency
       chThdSleepUntil(chTimeAddX(loop_beg, TIME_US2I(1e6/C_FREQ)));
     }
@@ -67,24 +82,20 @@ namespace Controller {
    */
   void simplePD_JS() {
     if(!goal_reached) {
+      // Update state and copy data to arrays
       Arm::updateState();
-      float q_arr[2];
       memcpy(&q_arr[0], &Arm::curr_q[0], 2*sizeof(float));
       memcpy(&dq_arr[0], &Arm::curr_dq[0], 2*sizeof(float));
-  
+
+      // Data is accessed using the Eigen::Map vector objects
       q_err = (q_des - q);
-      Serial.print("q: ");
-      Serial.print(q(0));
-      Serial.print(",");
-      Serial.println(q(1));
-      
-      if(q_err.norm() > ERR_THRESH) {
-        
-        Serial.println("hola_c");
-        
+      if( (dq.norm() > VEL_THRESH) || (q_err.norm() > ERR_THRESH) ) {
         v = Kp*q_err - Kd*(dq_des - dq);
         Arm::setV(&v_arr[0]);
       } else {
+        v_arr[0] = 0;
+        v_arr[1] = 0;
+        Arm::setV(&v_arr[0]);
         goal_reached = true;
       }
     }
