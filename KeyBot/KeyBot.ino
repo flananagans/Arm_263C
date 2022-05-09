@@ -1,55 +1,67 @@
-#include <SerialArm.h>
+#include "KeyBot.h"
+#include "arm.h"
+#include "controller.h"
+#include "serialcommand.h"
+#include "sdcard.h"
 
-SerialArm arm(&Serial1, 36);
-
-long t0;
-float V_MAX = 12.0;
-
-void setup() {
-  arm.addJoint(0x01);
-  arm.addJoint(0x02);
-
-  arm.start();
-  // Configure with delay of 0us (2*var), PWM mode, max voltage 
-  arm.configure(0, 16, V_MAX);
-  Serial.begin(115200);
-  while(!Serial) {};
-
-  //Serial.print("Arm configured with ");
-  //Serial.print(arm.getNumJoints());
-  //Serial.println(" joints");
-  Serial.println("pos_1, vel_1, pos_2, vel_2");
-  arm.enable();
-
-  t0 = millis();
-
-  float v[2] = {0.0, 0.0};
-  arm.setV(&v[0]);
+namespace KeyBot {
+  
+  long t0 = 0;
+  
+  //------------------------------------------------------------------------------
+  // Pulse thread, toggles the LED as a heartbeat.
+  // 64 byte stack beyond task switch and interrupt needs.
+  static THD_WORKING_AREA(waPulse_T, 64);
+  
+  static THD_FUNCTION(Pulse_T, arg) {
+    (void)arg;
+    pinMode(PIN_LED, OUTPUT);
+    while (1) {
+      systime_t loop_beg = chVTGetSystemTime();
+      
+      digitalWrite(PIN_LED, !digitalRead(PIN_LED));
+      
+      // Loop at constant frequency (2 Hz)
+      chThdSleepUntil(chTimeAddX(loop_beg, TIME_US2I(1e6/2)));
+    }
+  }
+  
+  void startComs() {
+    
+    Serial.begin(115200);
+    while(!Serial) {};
+    
+  }
+  
+  //------------------------------------------------------------------------------
+  // continue setup() after chBegin().
+  void chSetup() {
+    // Start pulse thread
+    chThdCreateStatic(waPulse_T, sizeof(waPulse_T), NORMALPRIO + 1, Pulse_T, NULL);
+    t0 = micros();
+    Serial.println("Hello, This is KeyBot!");
+    
+    // Start selected programs
+    Arm::start();
+    SerialCom::start();
+    Controller::start();
+    if(SDCARD) {
+      SDCard::start();
+    }
+  }
 }
 
+// Out of namespace KeyBot, normal Arduino startup
+//------------------------------------------------------------------------------
+void setup() {
+  // Start all communications
+  KeyBot::startComs();
+
+  // Initialize OS and then call chSetup.
+  chBegin(KeyBot::chSetup);
+  while (true) {} // blocks here and Chibi takes over
+}
+//------------------------------------------------------------------------------
+// loop() is the main thread.  Not used with ChibiOS
 void loop() {
-  long tmr = micros();
-
-  // Get current position
-  float pos[2] = {0};
-  arm.getAllPos(&pos[0]);
-
-  // Get current velocity
-  float vel[2] = {0};
-  arm.getAllVel(&vel[0]);
-
-  char buffer[64];
-  int n = sprintf(&buffer[0], "%0.3f,%0.3f,%0.3f,%0.3f", 
-        pos[0], vel[0], pos[1], vel[1]);
-  Serial.println(buffer);
-  
-  // Set command voltage
-  float phs = (2*PI)*fmod( (millis() - t0)/1000.0, 1.0);
-  float V_goal[2] = {V_MAX/2*cos(phs), V_MAX/2*sin(phs)};
-  //arm.setV(&V_goal[0]);
-  
-  tmr = micros() - tmr;
-  //Serial.println(tmr);
-  delayMicroseconds(2000-tmr);
-  //delay(5000);
 }

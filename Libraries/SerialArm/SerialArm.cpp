@@ -361,7 +361,7 @@ void SerialArm::configure(uint8_t del, uint8_t mode, float v_max) {
     this->writeAllSame(IDX_OPMODE, &data_per[0], (uint8_t)1);
 
     // Status return level
-    data_per[0] = 2; //return status for ping and read instructions only
+    data_per[0] = 3; //return status for ping and read instructions only
     this->writeAllSame(IDX_STATRET, &data_per[0], (uint8_t)1);
 
     // Voltage limit
