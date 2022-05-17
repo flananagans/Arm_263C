@@ -34,6 +34,7 @@
 // ARM CONFIGURATION
 //
 #define PORT_ARM Serial1
+#define PIN_EE 4 // End-effector servo pin
 #define NUM_JOINTS 2
 // Joint lengths
 #define LINK_1_L 0.280f

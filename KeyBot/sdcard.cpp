@@ -68,6 +68,17 @@ namespace SDCard {
   }
 
   /*
+   * Close all files
+   */
+  bool closeFiles() {
+    if(cStateFile) {
+      cStateFile.close();
+      Serial.print("Missed points: ");
+      Serial.println(cStateBuffer.missed);
+    }
+  }
+
+  /*
    * Startup function
    */
   void start() {
@@ -93,10 +104,12 @@ namespace SDCard {
       cStateFile = SD.open(cStateFilename.c_str(), O_WRITE);
     }
     while(cStateBuffer.len > 0) {
+      // Stop all interrupts while we fetch data
       chSysLockFromISR();
         cStateBuffer.pop(&curr_cState);
-        cStateFile.write((uint8_t*)&curr_cState, sizeof(controllerState_t));
       chSysUnlockFromISR();
+      // Write to file
+      cStateFile.write((uint8_t*)&curr_cState, sizeof(controllerState_t));
     }
     
     if(cStateFile && Controller::goal_reached) { // close file once the goal is reached

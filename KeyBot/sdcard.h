@@ -14,6 +14,7 @@ namespace SDCard {
   void saveControllerState(void);
   bool initSD(void);
   bool createFiles(void);
+  bool closeFiles(void);
 
   extern HopBuf<controllerState_t> cStateBuffer;
 }

@@ -1,4 +1,5 @@
 #include "arm.h"
+#include <Servo.h>
 
 /*
  * Interface for the SerialArm object
@@ -8,6 +9,9 @@
 namespace Arm {
   
   SerialArm arm(&PORT_ARM, 36);
+  Servo ee; // end effector servo
+  binary_semaphore_t ee_bsem;
+  
   float V_MAX = 12.0;
 
   // Current position
@@ -15,17 +19,44 @@ namespace Arm {
   // Current velocity
   float curr_dq[2] = {0};
 
-  void start() {
+  int KEY_PRESS = 50;
+  int KEY_REL = 0;
+
+  static THD_WORKING_AREA(waPressKey_T, 64);
+  static THD_FUNCTION(PressKey_T, arg) {
     
+    while (true) {
+      chBSemWait(&ee_bsem);
+      
+      ee.write(KEY_PRESS); // press key
+      Serial.println("Key Pressed!");
+      chThdSleep(TIME_MS2I(100));
+      ee.write(KEY_REL); // release key
+      Serial.println("Key Released!");
+    }
+  }
+
+  void start() {
+
+    // Set up the dynamixels on the arm
     for(uint8_t j = 0; j < NUM_JOINTS; j++) {
       arm.addJoint(j + 1);
-    }
-  
+    }  
     arm.start();
     // Configure with delay of 0us (2*var), PWM mode, max voltage 
     arm.configure(0, 16, V_MAX);
-
     disable();
+
+    // Set up the servo on the end effector
+    ee.attach(PIN_EE);
+
+    // Initialize the end effector semaphore
+    chBSemObjectInit(&ee_bsem, true);
+    // Start thread
+    chThdCreateStatic(waPressKey_T, sizeof(waPressKey_T),
+                    NORMALPRIO + 1, PressKey_T, NULL);
+
+    ee.write(KEY_REL);
   }
 
   void enable() {
@@ -56,5 +87,14 @@ namespace Arm {
    */
   void setV(float* v_d) {
     arm.setV(v_d);
+  }
+
+  /*
+   * Press the key
+   */
+  void pressKey() {
+      chSysLockFromISR();
+      chBSemSignalI(&ee_bsem);
+      chSysUnlockFromISR();
   }
 }

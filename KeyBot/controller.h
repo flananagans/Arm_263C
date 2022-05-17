@@ -11,6 +11,7 @@ namespace Controller {
 
   void start(void);
   void setQGoal(float* q);
+  void setPGoal(float* p);
 
   // Controllers
   void simplePD_JS();

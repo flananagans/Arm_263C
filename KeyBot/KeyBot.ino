@@ -12,7 +12,6 @@ namespace KeyBot {
   // Pulse thread, toggles the LED as a heartbeat.
   // 64 byte stack beyond task switch and interrupt needs.
   static THD_WORKING_AREA(waPulse_T, 64);
-  
   static THD_FUNCTION(Pulse_T, arg) {
     (void)arg;
     pinMode(PIN_LED, OUTPUT);

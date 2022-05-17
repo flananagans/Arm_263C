@@ -8,7 +8,15 @@ namespace Controller {
 
   float t = 0;
 
-  // Desired values
+  // Desired task space values
+  float p_des_arr[2];
+  float dp_des_arr[2];
+  float ddp_des_arr[2];
+  Eigen::Map<Eigen::Vector2f> p_des(&p_des_arr[0]);
+  Eigen::Map<Eigen::Vector2f> dp_des(&dp_des_arr[0]);
+  Eigen::Map<Eigen::Vector2f> ddp_des(&dp_des_arr[0]);
+
+  // Desired joint space values
   float q_des_arr[2];
   float dq_des_arr[2];
   float ddq_des_arr[2];
@@ -28,8 +36,8 @@ namespace Controller {
   Eigen::Map<Eigen::Vector2f> v(&v_arr[0]);
 
   // Gain Matrices
-  float Kp_arr[2] = {10, 10};
-  float Kd_arr[2] = {0.5, 0.5};
+  float Kp_arr[2] = {20, 20};
+  float Kd_arr[2] = {1, 1};
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
 
@@ -72,9 +80,19 @@ namespace Controller {
     chThdCreateStatic(waControl_T, sizeof(waControl_T), NORMALPRIO + 2, Control_T, NULL);
   }
 
+  // Set joint space goal
   void setQGoal(float* q) {
-    memcpy(&q_des[0], q, NUM_JOINTS*sizeof(float));
+    memcpy(&q_des_arr[0], q, NUM_JOINTS*sizeof(float));
     goal_reached = false;
+  }
+
+  // Set task space goal
+  void setPGoal(float* p) {
+    if(Kine::ikine(&p[0])) {
+      memcpy(&p_des_arr[0], p, 2*sizeof(float)); // x,y
+      memcpy(&q_des_arr[0], &Kine::last_q[0], NUM_JOINTS*sizeof(float));  
+      goal_reached = false;
+    }
   }
   
   /*
@@ -92,11 +110,13 @@ namespace Controller {
       if( (dq.norm() > VEL_THRESH) || (q_err.norm() > ERR_THRESH) ) {
         v = Kp*q_err - Kd*(dq_des - dq);
         Arm::setV(&v_arr[0]);
-      } else {
+      } else { // Goal is reached, stop the arm and press the key
         v_arr[0] = 0;
         v_arr[1] = 0;
         Arm::setV(&v_arr[0]);
+        
         goal_reached = true;
+        Arm::pressKey();
       }
     }
   }
