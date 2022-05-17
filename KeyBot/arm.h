@@ -12,6 +12,8 @@ namespace Arm {
   void disable(void);
   bool updateState(void);
   void setV(float* v_d);
+  void pressKey(void);
+  void releaseKey(void);
 
   extern float curr_q[NUM_JOINTS]; // current joint position
   extern float curr_dq[NUM_JOINTS]; // current joint velocity

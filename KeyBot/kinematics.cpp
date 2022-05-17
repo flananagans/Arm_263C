@@ -9,7 +9,7 @@ namespace Kine {
   float last_p[2] = {0};
 
   /*
-   * Forward kinematics
+   * Forward kinematics. Writes end effector position values to Kine::last_p
    */
   bool fkine(float* q) {
     last_p[0] = LINK_1_L*cos(q[0]) + LINK_2_L*cos(q[0] + q[1]);
@@ -18,14 +18,15 @@ namespace Kine {
   }
 
   /* 
-   * Inverse kinematics
+   * Inverse kinematics. Writes joint values to Kine::last_q
    */
   bool ikine(float* p) {
 
     // Check workspace
     float r2 = pow(p[0], 2) + pow(p[1], 2); // length to goal squared
     if(sqrt(r2) > LINK_1_L + LINK_2_L + EPS) {
-        return false;
+      Serial.println("Out of workspace");
+      return false;
     }
 
     float a1 = LINK_1_L;
@@ -45,7 +46,8 @@ namespace Kine {
     }
     // Check limits
     if( (last_q[1] > J2_MAXANG) || (last_q[1]< J2_MINANG) ) {
-        return false;
+      Serial.println("Out of J2 range");
+      return false;
     }
     
     // Calculate theta1
@@ -54,7 +56,8 @@ namespace Kine {
     last_q[0] = beta - psi;
     // Check limits
     if( (last_q[0] > J1_MAXANG) || (last_q[0] < J1_MINANG) ) {
-        return false;
+      Serial.println("Out of J1 range");
+      return false;
     }
     
     return true;

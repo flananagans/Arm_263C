@@ -38,6 +38,7 @@ namespace SerialCom {
     sCmd.addCommand("FK", testFK);
     sCmd.addCommand("IK", testIK);
     sCmd.addCommand("S_K", setKey); // set desired key
+    sCmd.addCommand("OFF", turnOff); // Turn off stuff
     
     sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?")
     Serial.println("Serial Commands are ready");
@@ -156,16 +157,17 @@ void testIK() {
  * Set the desired key to press
  */
 void setKey() {
-  float pos[2] = {0};
   // Collect additional arguments
   char* arg;
   arg = sCmd.next();
   if(arg != NULL) {
-    Traj::getCoord(&pos[0], *arg);  
+    Traj::setKey(*arg);
   }
-  Serial.print(pos[0], 3);
-  Serial.print(",");
-  Serial.println(pos[1], 3);
+}
+
+void turnOff() {
+  SDCard::closeFiles();
+  Arm::disable();
 }
 
 // This gets set as the default handler, and gets called when no other command matches.
