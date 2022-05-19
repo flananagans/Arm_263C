@@ -2,6 +2,7 @@
 #include "arm.h"
 #include "controller.h"
 #include "serialcommand.h"
+#include "trajectory.h"
 #include "sdcard.h"
 
 namespace KeyBot {
@@ -44,6 +45,7 @@ namespace KeyBot {
     Arm::start();
     SerialCom::start();
     Controller::start();
+    Traj::start();
     if(SDCARD) {
       SDCard::start();
     }

@@ -45,6 +45,8 @@
 #define J2_MINANG 0.0f
 #define J2_MAXANG 2.6f
 #define EPS 1e-10f
+#define J_MAXACC 5.0f
+#define EE_ATTACHED true
 
 // FIRMWARE INFO STRING
 #define STRINGIFY(x) #x

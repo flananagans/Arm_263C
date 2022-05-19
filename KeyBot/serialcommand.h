@@ -25,6 +25,7 @@ void setV(void);
 void testFK(void);
 void testIK(void);
 void setKey(void);
+void pressKey(void);
 void turnOff(void);
 
 void unrecognized();

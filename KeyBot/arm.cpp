@@ -19,8 +19,8 @@ namespace Arm {
   // Current velocity
   float curr_dq[2] = {0};
 
-  int KEY_PRESS = 50;
-  int KEY_REL = 0;
+  int KEY_PRESS = 30;
+  int KEY_REL = 125;
 
   static THD_WORKING_AREA(waPressKey_T, 64);
   static THD_FUNCTION(PressKey_T, arg) {
@@ -30,7 +30,7 @@ namespace Arm {
       
       ee.write(KEY_PRESS); // press key
       Serial.println("Key Pressed!");
-      chThdSleep(TIME_MS2I(100));
+      chThdSleep(TIME_MS2I(250));
       ee.write(KEY_REL); // release key
       Serial.println("Key Released!");
     }
@@ -47,16 +47,18 @@ namespace Arm {
     arm.configure(0, 16, V_MAX);
     disable();
 
-    // Set up the servo on the end effector
-    ee.attach(PIN_EE);
-
-    // Initialize the end effector semaphore
-    chBSemObjectInit(&ee_bsem, true);
-    // Start thread
-    chThdCreateStatic(waPressKey_T, sizeof(waPressKey_T),
-                    NORMALPRIO + 1, PressKey_T, NULL);
-
-    ee.write(KEY_REL);
+    if(EE_ATTACHED) {
+      // Set up the servo on the end effector
+      ee.attach(PIN_EE);
+  
+      // Initialize the end effector semaphore
+      chBSemObjectInit(&ee_bsem, true);
+      // Start thread
+      chThdCreateStatic(waPressKey_T, sizeof(waPressKey_T),
+                      NORMALPRIO + 1, PressKey_T, NULL);
+  
+      ee.write(KEY_REL);
+    }
   }
 
   void enable() {
@@ -93,8 +95,10 @@ namespace Arm {
    * Press the key
    */
   void pressKey() {
+    if(EE_ATTACHED) {
       chSysLockFromISR();
       chBSemSignalI(&ee_bsem);
       chSysUnlockFromISR();
+    }
   }
 }

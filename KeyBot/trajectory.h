@@ -6,9 +6,11 @@
 
 namespace Traj{
 
+  void start(void);
   bool getCoord(float* pos, char letter);
   void setKey(char letter);
-  
+  void generateTrajectory(char letter);
+  extern volatile bool traj_finished;
   
   const float keyCoords[28][2] = { 7.1250,  4.0625,
                                    6.3750,  0.6875,

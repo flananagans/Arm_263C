@@ -38,6 +38,7 @@ namespace SerialCom {
     sCmd.addCommand("FK", testFK);
     sCmd.addCommand("IK", testIK);
     sCmd.addCommand("S_K", setKey); // set desired key
+    sCmd.addCommand("P_K", pressKey); // press a key
     sCmd.addCommand("OFF", turnOff); // Turn off stuff
     
     sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?")
@@ -161,13 +162,21 @@ void setKey() {
   char* arg;
   arg = sCmd.next();
   if(arg != NULL) {
-    Traj::setKey(*arg);
+    Traj::generateTrajectory(*arg);
   }
+}
+
+/*
+ * Press a key (just actuates the servo)
+ */
+void pressKey() {
+  Arm::pressKey();
 }
 
 void turnOff() {
   SDCard::closeFiles();
   Arm::disable();
+  Controller::goal_reached = true;
 }
 
 // This gets set as the default handler, and gets called when no other command matches.
