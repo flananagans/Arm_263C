@@ -21,6 +21,7 @@ void INFO(void);
 void disableArm(void);
 void enableArm(void);
 void setQ(void);
+void getQ(void);
 void setV(void);
 void testFK(void);
 void testIK(void);
