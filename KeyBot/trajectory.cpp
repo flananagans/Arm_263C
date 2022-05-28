@@ -9,7 +9,7 @@ namespace Traj {
   long t_start = 0; // Start time of the trajectory
   float t = 0;
   volatile bool traj_finished = true;
-  float traj_freq = 10; // Hz
+  float traj_freq = 20; // Hz
 
   /********************** Threads *********************************/
   //Thread to send desired trajectory points to controller
@@ -17,6 +17,8 @@ namespace Traj {
   static THD_FUNCTION(Traj_T, arg) {
     while(1){
 
+      long t_temp = micros();
+      
       systime_t loop_beg = chVTGetSystemTime();
 
       t = (micros() - t_start)/(1e6); // Current duration of trajectory in sec
@@ -44,14 +46,19 @@ namespace Traj {
         }
 
         // Send goal to controller
-        Controller::setQGoal(&q_d[0]);
-        
+        Controller::setQGoal(&q_d[0], &dq_d[0], & ddq_d[0]);
+        /*
+        Serial.print(q_d[0]);
+        Serial.print(",");
+        Serial.println(q_d[1]);
+        */
       }else if(!traj_finished){
         // Send final goal to controller
-        Controller::setQGoal(&q_f[0]);
+        //Controller::setQGoal(&q_f[0]);
         traj_finished = true;
       }
-      
+
+      //Serial.println(micros() - t_temp);
       // Loop at constant frequency
       chThdSleepUntil(chTimeAddX(loop_beg, TIME_US2I(1e6/traj_freq)));
     }
@@ -74,9 +81,6 @@ namespace Traj {
     } else {
       return false;
     }
-    // Convert units
-    pos[0] = 0.0254*pos[0];
-    pos[1] = 0.0254*pos[1];
     return true;
   }
 

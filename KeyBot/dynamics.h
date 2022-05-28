@@ -10,6 +10,7 @@ namespace Dyn {
   void calculateJacobian(float* q);
   
   extern Eigen::Matrix2f J; // Jacobian matrix
+  extern Eigen::Matrix2f J_T; // Jacobian transpose matrix
 
 }
 

@@ -5,16 +5,18 @@
 #include "arm.h"
 #include "dynamics.h"
 #include "kinematics.h"
+#include "trajectory.h"
 #include "sdcard.h"
 
 namespace Controller {
 
   void start(void);
-  void setQGoal(float* q);
+  void setQGoal(float* q, float* dq, float* ddq);
   void setPGoal(float* p);
 
   // Controllers
-  void simplePD_JS();
+  void simplePID_JS();
+  void simplePID_TS();
 
   extern volatile bool goal_reached;
   extern float t;

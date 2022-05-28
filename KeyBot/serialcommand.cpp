@@ -34,6 +34,7 @@ namespace SerialCom {
     sCmd.addCommand("DIS", disableArm);
     sCmd.addCommand("EN", enableArm);
     sCmd.addCommand("S_Q", setQ); // set joint angles
+    sCmd.addCommand("G_Q", getQ); // get joint angles
     sCmd.addCommand("S_V", setV); // set motor voltages
     sCmd.addCommand("FK", testFK);
     sCmd.addCommand("IK", testIK);
@@ -79,7 +80,19 @@ void setQ() {
     q[1] = atof(arg); 
   }
 
-  Controller::setQGoal(&q[0]);
+  float dq[NUM_JOINTS] = {0};
+  float ddq[NUM_JOINTS] = {0};
+  Controller::setQGoal(&q[0], &dq[0], &ddq[0]);
+}
+
+/*
+ * Get current joint angles
+ */
+void getQ() {
+  Arm::updateState();
+  Serial.print(Arm::curr_q[0]);
+  Serial.print(",");
+  Serial.println(Arm::curr_q[1]);
 }
 
 /*

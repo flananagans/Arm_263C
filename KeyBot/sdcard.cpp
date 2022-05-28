@@ -2,7 +2,7 @@
 
 namespace SDCard {
 
-  float SD_FREQ = 20; // Hz
+  float SD_FREQ = 10; // Hz
 
   // Files and names
   String cStateFilename;
@@ -11,7 +11,7 @@ namespace SDCard {
   // Data buffers
   HopBuf<controllerState_t> cStateBuffer;
 
-  char * DEFAULT_TRIALNAME = (char*)"test";
+  char * DEFAULT_TRIALNAME = (char*)"TS_test";
   char * trialname = DEFAULT_TRIALNAME;
 
   // Configuration variables
