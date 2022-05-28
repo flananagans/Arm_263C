@@ -10,28 +10,42 @@
 close all; clear all; clc
 
 %% Connect to Teensy
-port = "COM5";
-connectedTeensy = serialport(port, 115200); %Need to select the right port
+connectedTeensy = serialport("COM6", 115200); %Need to select the right port
 
 %% Startup and enable motors
-readAllData(connectedTeensy);
+while(connectedTeensy.NumBytesAvailable > 0) 
+    connectedTeensy.readline()
+end
 connectedTeensy.writeline('EN');
 
 %% Send a command
 connectedTeensy.writeline('S_Q 0 0');
-readAllData(connectedTeensy);
+readAllData()
+
+while(connectedTeensy.NumBytesAvailable > 0) 
+    connectedTeensy.readline()
+end
 
 %% Disable and close files
 connectedTeensy.writeline('DIS');
-readAllData(connectedTeensy);
+while(connectedTeensy.NumBytesAvailable > 0) 
+    connectedTeensy.readline()
+end
 connectedTeensy.writeline('OFF');
-readAllData(connectedTeensy);
-fprintf("done\n")
+
 
 %% Functions
-function readAllData(connectedTeensy) 
-%Read All Data. Reads incoming data from Teensy until no bytes left.
+function [] = readAllData() 
+    fprintf("hi\n);
     while(connectedTeensy.NumBytesAvailable > 0) 
-        connectedTeensy.readline()
-    end
+    connectedTeensy.readline()
+end
+
+end
+
+function [outputArg1,outputArg2] = untitled(inputArg1,inputArg2)
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
+outputArg1 = inputArg1;
+outputArg2 = inputArg2;
 end

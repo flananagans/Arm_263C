@@ -3,7 +3,7 @@
 %   MAE C263C Project
 %   Keybot - The 1 finger speed racer, that can’t press shift.
 %
-%   Authors:        Will, Gabriel, Jake and Juan
+%   Authors:        Will, Gabriel, Jake, and Juan
 %   Date:           5/3/2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -12,7 +12,7 @@ close all; clear all; clc
 %% Start up the GUI
 keybot = KeybotInterface;
 keybot.matlabFileTimer = 1; % Toggle to use file rather than app timer.
-pause(2);
+pause(2); %Setup pause.
 
 %% Run loop to collect letters pressed
 key_pressed = keybot.currLetter; % Get current pressed key
