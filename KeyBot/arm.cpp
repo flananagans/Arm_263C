@@ -19,8 +19,8 @@ namespace Arm {
   // Current velocity
   float curr_dq[2] = {0};
 
-  int KEY_PRESS = 30;
-  int KEY_REL = 100;
+  int KEY_PRESS = 80;
+  int KEY_REL = 150;
 
   static THD_WORKING_AREA(waPressKey_T, 64);
   static THD_FUNCTION(PressKey_T, arg) {
@@ -30,7 +30,7 @@ namespace Arm {
       
       ee.write(KEY_PRESS); // press key
       Serial.println("Key Pressed!");
-      chThdSleep(TIME_MS2I(400));
+      chThdSleep(TIME_MS2I(300));
       ee.write(KEY_REL); // release key
       Serial.println("Key Released!");
     }

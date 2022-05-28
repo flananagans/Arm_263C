@@ -44,9 +44,16 @@ namespace Controller {
   Eigen::Map<Eigen::Vector2f> v(&v_arr[0]);
 
   // Gain Matrices
-  float Kp_arr[2] = {500, 500};
-  float Kd_arr[2] = {100, 100};
-  float Ki_arr[2] = {5, 5};
+  // JS gains
+  float Kp_arr[2] = {20, 20};
+  float Kd_arr[2] = {5, 5};
+  float Ki_arr[2] = {0.2, 0.2};
+
+  // TS gains
+//  float Kp_arr[2] = {500, 500};
+//  float Kd_arr[2] = {100, 100};
+//  float Ki_arr[2] = {5, 5};
+  
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
   Eigen::Matrix2f Ki;
@@ -71,8 +78,9 @@ namespace Controller {
         Arm::updateState();
         memcpy(&q_arr[0], &Arm::curr_q[0], NUM_JOINTS*sizeof(float));
         memcpy(&dq_arr[0], &Arm::curr_dq[0], NUM_JOINTS*sizeof(float));
-        
-        simplePID_TS();
+
+        // The controller to run
+        simplePID_JS();
       }
       
       // Update the current state

@@ -26,10 +26,10 @@
 // CONTROL CONFIGURATION
 //
 #define C_FREQ 500
-#define Q_ERR_THRESH 0.1f
+#define Q_ERR_THRESH 0.05f
 #define Q_VEL_THRESH 0.05f
 #define P_ERR_THRESH 0.002f
-#define P_VEL_THRESH 0.001f
+#define P_VEL_THRESH 0.002f
 
 /////////////////////////////////////////////////////
 //
