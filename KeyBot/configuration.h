@@ -26,10 +26,10 @@
 // CONTROL CONFIGURATION
 //
 #define C_FREQ 500
-#define Q_ERR_THRESH 0.05f
-#define Q_VEL_THRESH 0.05f
-#define P_ERR_THRESH 0.002f
-#define P_VEL_THRESH 0.002f
+#define Q_ERR_THRESH 0.01f
+#define Q_VEL_THRESH 0.01f
+#define P_ERR_THRESH 0.001f
+#define P_VEL_THRESH 0.001f
 
 /////////////////////////////////////////////////////
 //
@@ -39,18 +39,18 @@
 #define PIN_EE 4 // End-effector servo pin
 #define NUM_JOINTS 2
 // Joint lengths
-#define LINK_1_L 0.293f
-#define LINK_2_L 0.211f
+#define LINK_1_L 0.287f
+#define LINK_2_L 0.205f
 // Joint offsets
-#define OFFSET_Q1 0.11f
-#define OFFSET_Q2 0.30f
+#define OFFSET_Q1 0.12f
+#define OFFSET_Q2 -0.45f
 // Joint limits
 #define J1_MINANG -1.5708f
 #define J1_MAXANG 1.5708f
 #define J2_MINANG 0.0f
 #define J2_MAXANG 2.95f
 #define EPS 1e-10f
-#define J_MAXACC 10.0f
+#define J_MAXACC 15.0f
 #define EE_ATTACHED true
 
 // FIRMWARE INFO STRING

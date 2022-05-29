@@ -9,6 +9,7 @@
 namespace Arm {
   
   SerialArm arm(&PORT_ARM, 36);
+  bool enabled = 0;
   Servo ee; // end effector servo
   binary_semaphore_t ee_bsem;
   
@@ -63,10 +64,12 @@ namespace Arm {
 
   void enable() {
     arm.enable();
+    enabled = true;
   }
 
   void disable() {
     arm.disable();
+    enabled = false;
   }
 
   /*

@@ -45,14 +45,14 @@ namespace Controller {
 
   // Gain Matrices
   // JS gains
-  float Kp_arr[2] = {20, 20};
-  float Kd_arr[2] = {5, 5};
-  float Ki_arr[2] = {0.2, 0.2};
+//  float Kp_arr[2] = {20, 20};
+//  float Kd_arr[2] = {5, 5};
+//  float Ki_arr[2] = {0.2, 0.2};
 
   // TS gains
-//  float Kp_arr[2] = {500, 500};
-//  float Kd_arr[2] = {100, 100};
-//  float Ki_arr[2] = {5, 5};
+  float Kp_arr[2] = {1200, 1200};
+  float Kd_arr[2] = {70, 50};
+  float Ki_arr[2] = {7, 7};
   
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
@@ -80,7 +80,7 @@ namespace Controller {
         memcpy(&dq_arr[0], &Arm::curr_dq[0], NUM_JOINTS*sizeof(float));
 
         // The controller to run
-        simplePID_JS();
+        simplePID_TS();
       }
       
       // Update the current state
@@ -131,7 +131,7 @@ namespace Controller {
 
   // Set joint space goal
   void setQGoal(float* q, float* dq, float* ddq) {
-    if(Kine::fkine(&q[0])) {
+    if(Arm::enabled && Kine::fkine(&q[0])) {
       memcpy(&q_des_arr[0], &q[0], NUM_JOINTS*sizeof(float));
       memcpy(&p_des_arr[0], &Kine::last_p[0], 2*sizeof(float)); // x,y
       
@@ -143,7 +143,7 @@ namespace Controller {
 
   // Set task space goal
   void setPGoal(float* p) {
-    if(Kine::ikine(&p[0])) {
+    if(Arm::enabled && Kine::ikine(&p[0])) {
       memcpy(&p_des_arr[0], &p[0], 2*sizeof(float)); // x,y
       memcpy(&q_des_arr[0], &Kine::last_q[0], NUM_JOINTS*sizeof(float));  
       goal_reached = false;

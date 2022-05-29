@@ -12,7 +12,7 @@ namespace Traj {
   void generateTrajectory(char letter);
   extern volatile bool traj_finished;
   
-  const float keyCoords[28][2] = {0.1810,  0.1032,
+  const float keyCoords[29][2] = {0.1810,  0.1032,
                                   0.1619,  0.0175,
                                   0.1619,  0.0556,
                                   0.1810,  0.0651,
@@ -39,6 +39,7 @@ namespace Traj {
                                   0.2000,  0.0135,
                                   0.1619,  0.0937,
                                   0.1397,  0.0151,
+                                  0.2191, -0.1124,
                                        0,       0}; // (x, y) coords for each character IN METERS
 }
 

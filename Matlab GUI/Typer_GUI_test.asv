@@ -5,15 +5,12 @@
 %
 %   Authors:        Will, Gabriel, Jake, and Juan
 %   Date:           5/3/2022
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%q
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all; clear; clc;
 
 %% Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Variables you probably want to change
 port = "COM8";
-desired_string = 'avalon'; % Chose what you want to be typed
-
 connectedTeensy = serialport(port, 115200); %Need to select the right port
 
 % Startup and enable motors
@@ -23,7 +20,6 @@ connectedTeensy.writeline('EN');
 %% Start up the GUI
 keybot = KeybotInterface;
 keybot.matlabFileTimer = 1; % Toggle to use file rather than app timer.
-keybot.TexttotypeTextArea.Value = desired_string; % Get string to be typed
 
 % Set initial pose of arm
 connectedTeensy.writeline('S_K Q');
@@ -37,10 +33,14 @@ end
 %% Run loop to collect letters pressed
 key_pressed = keybot.currLetter; % Get current pressed key
 curr_key_count = keybot.keyCounter; % Get current keyboard click count
+
+% Chose what you want to be typed
+desired_string = "avalon";
+keybot.TexttotypeTextArea = "avalon" % Get string to be typed
 desired_letter_pos = 1; %Start with the first letter
 backspaces_needed = 0; %Initialize
 focus(keybot.TypehereTextArea);
-stopwatch_tic = tic; fprintf("Starting timer\n"); % Just in case
+stopwatch_tic = tic; % Just in case
 
 % Send the first letter. Robot starts moving, and we enter the loop
 tempcmd = sprintf("connectedTeensy.writeline('S_K %s');", desired_string(desired_letter_pos));
@@ -51,6 +51,7 @@ fprintf("Initial desired Letter: '%s'.\n", desired_string(desired_letter_pos));
 while true 
     
     pause(0.001); % Helps the UI actually run. Lower means faster
+    if curr_key_count == 1; stopwatch_tic = tic; end;
     
     % We only go into this loop whenever a key is pressed.
     if keybot.keyCounter == curr_key_count %&& keybot.timerActive == 1
@@ -127,8 +128,8 @@ while true
 
     if keybot.timeLeft == 0; break; end % End the loop once time reaches 0.
 end
-endtime = toc(stopwatch_tic);
-fprintf("Game over! Time_elapsed = %.2f.\n", endtime);
+
+fprintf("Game over! Time_elapsed = %.2f.\n", toc(stopwatch_tic))
 pause(2); % Pause to read time.
 
 %% End connection with Teensy: Disable and close files %%%%%%%%%%%%%%%%%%%
@@ -138,8 +139,6 @@ readAllData(connectedTeensy);
 % Close everything
 keybot.delete;
 connectedTeensy = [];
-
-fprintf("Game over! Time_elapsed = %.2f.\n", endtime);
 
 %% Functions
 function readAllData(connectedTeensy) 

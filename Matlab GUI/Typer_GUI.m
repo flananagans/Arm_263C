@@ -19,6 +19,7 @@ key_pressed = keybot.currLetter; % Get current pressed key
 curr_key_count = keybot.keyCounter; % Get current keyboard click count
 desired_string = keybot.TexttotypeTextArea.Value{1}; % Get string to be typed
 desired_letter_pos = 1; %Start with the first letter
+focus(keybot.TypehereTextArea);
 
 % Runs and listens to input until timer hits 0 or the "End" button is pressed.
 while true 

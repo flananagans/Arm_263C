@@ -18,6 +18,7 @@ namespace Arm {
   extern float curr_q[NUM_JOINTS]; // current joint position
   extern float curr_dq[NUM_JOINTS]; // current joint velocity
   extern float curr_t; // current time
+  extern bool enabled;
 }
 
 #endif
