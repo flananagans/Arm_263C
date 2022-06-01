@@ -5,14 +5,16 @@
 %
 %   Authors:        Will, Gabriel, Jake, and Juan
 %   Date:           5/3/2022
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%q
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all; clear; clc;
 
 %% Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables you probably want to change
 port = "COM8";
-desired_string = 'avalon'; % Chose what you want to be typed
+desired_string = 'avalon avalon avalon'; % Chose what you want to be typed
+% desired_string = 'avalon'; % Chose what you want to be typed
+% desired_string = 'the quick brown fox jumps over the lazy dog'; %Full strings
 
 connectedTeensy = serialport(port, 115200); %Need to select the right port
 

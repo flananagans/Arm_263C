@@ -50,9 +50,9 @@ namespace Controller {
 //  float Ki_arr[2] = {0.2, 0.2};
 
   // TS gains
-  float Kp_arr[2] = {1200, 1200};
-  float Kd_arr[2] = {70, 50};
-  float Ki_arr[2] = {7, 7};
+  float Kp_arr[2] = {10000, 10000};
+  float Kd_arr[2] = {200, 200};
+  float Ki_arr[2] = {100, 100};
   
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
