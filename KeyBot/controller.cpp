@@ -50,15 +50,14 @@ namespace Controller {
 //  float Ki_arr[2] = {0.2, 0.2};
 
   // TS gains
-  float Kp_arr[2] = {10000, 10000};
-  float Kd_arr[2] = {200, 200};
-  float Ki_arr[2] = {100, 100};
+  float Kp_arr[2] = {25000, 22500};
+  float Kd_arr[2] = {10, 10};
+  float Ki_arr[2] = {30, 30};
 
   // ID gains
-//  float Kp_arr[2] = {10, 10};
-//  float Kd_arr[2] = {1, 1};
+//  float Kp_arr[2] = {15000, 15000};
+//  float Kd_arr[2] = {80, 80};
 //  float Ki_arr[2] = {0, 0};
-  
   
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
@@ -87,6 +86,7 @@ namespace Controller {
 
         // The controller to run
         simplePID_TS();
+        //ID_TS();
       }
       
       // Update the current state
@@ -252,11 +252,11 @@ namespace Controller {
 
       v = Dyn::B*y + Dyn::N;
 
-      Serial.print(p_err[0]);
-      Serial.print(",");
-      Serial.print(y(0));
-      Serial.print(",");
-      Serial.println(v(0));
+//      Serial.print(p_err[0]);
+//      Serial.print(",");
+//      Serial.print(y(0));
+//      Serial.print(",");
+//      Serial.println(v(0));
       
       Arm::setV(&v_arr[0]);
     } else { // Goal is reached, stop the arm and press the key

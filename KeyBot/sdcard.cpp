@@ -11,7 +11,7 @@ namespace SDCard {
   // Data buffers
   HopBuf<controllerState_t> cStateBuffer;
 
-  char * DEFAULT_TRIALNAME = (char*)"GA16";
+  char * DEFAULT_TRIALNAME = (char*)"WF14";
   char * trialname = DEFAULT_TRIALNAME;
 
   // Configuration variables

@@ -7,9 +7,8 @@ namespace Dyn {
   Eigen::Matrix2f J_dot; // Time derivative of J
   Eigen::Matrix2f B; // Inertia matrix
   Eigen::Vector2f N; // Nonlinear and coupled dynamics terms
-
-  const float k_r = 193;
-  Eigen::Matrix2f F { {0.00692, 0},
+  
+  Eigen::Matrix2f F_mat { {0.00692, 0},
                       {0, 0.00416} }; // Viscous friction
 
   /*
@@ -49,10 +48,10 @@ namespace Dyn {
    * Calculate the current inertia matrix
    */
   void calculateB(const Eigen::Vector2f& q) {
-    B(0,0) = 0.01388*cos(q(1)) + 249.5876;
-    B(0,1) = 0.006942*cos(q(1)) + 0.00449;
+    B(0,0) = 0.01388*cos(q(1)) + 0.02600;
+    B(0,1) = 0.006942*cos(q(1)) + 0.004494;
     B(1,0) = B(0,1);
-    B(1,1) = 283.0969;
+    B(1,1) = 0.012094;
   }
 
   /*
@@ -65,7 +64,7 @@ namespace Dyn {
     C(1,0) = 0.006942*sin(q(1))*dq(0);
     C(1,1) = 0;
     
-    N = (F + C)*dq;
+    N = (F_mat + C)*dq;
   }
 
   /*
