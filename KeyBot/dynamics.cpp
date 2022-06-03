@@ -9,8 +9,8 @@ namespace Dyn {
   Eigen::Vector2f N; // Nonlinear and coupled dynamics terms
 
   const float k_r = 193;
-  Eigen::Matrix2f F { {k_r*(0.00692)*k_r, 0},
-                      {0, k_r*(0.00416)*k_r} }; // Viscous friction
+  Eigen::Matrix2f F { {0.00692, 0},
+                      {0, 0.00416} }; // Viscous friction
 
   /*
    * Calculate the Jacobian for the given joint angles

@@ -53,6 +53,12 @@ namespace Controller {
   float Kp_arr[2] = {10000, 10000};
   float Kd_arr[2] = {200, 200};
   float Ki_arr[2] = {100, 100};
+
+  // ID gains
+//  float Kp_arr[2] = {10, 10};
+//  float Kd_arr[2] = {1, 1};
+//  float Ki_arr[2] = {0, 0};
+  
   
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
@@ -245,6 +251,12 @@ namespace Controller {
       Eigen::Vector2f y = Dyn::J_inv * (ddp_des + Kd*(dp_des - dp) + Kp*p_err - Dyn::J_dot*dq);
 
       v = Dyn::B*y + Dyn::N;
+
+      Serial.print(p_err[0]);
+      Serial.print(",");
+      Serial.print(y(0));
+      Serial.print(",");
+      Serial.println(v(0));
       
       Arm::setV(&v_arr[0]);
     } else { // Goal is reached, stop the arm and press the key

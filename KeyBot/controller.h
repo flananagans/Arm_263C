@@ -17,6 +17,7 @@ namespace Controller {
   // Controllers
   void simplePID_JS();
   void simplePID_TS();
+  void ID_TS();
 
   extern volatile bool goal_reached;
   extern float t;

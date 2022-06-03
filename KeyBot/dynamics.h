@@ -3,6 +3,7 @@
 
 #include "KeyBot.h"
 #include "eigen.h"
+#include <Eigen/LU>
 
 namespace Dyn {
 
