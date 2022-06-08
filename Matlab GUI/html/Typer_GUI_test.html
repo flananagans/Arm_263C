@@ -1,0 +1,373 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Typer_GUI_test</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-06-08"><meta name="DC.source" content="Typer_GUI_test.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</a></li><li><a href="#3">Start up the GUI</a></li><li><a href="#4">Run loop to collect letters pressed</a></li><li><a href="#5">End connection with Teensy: Disable and close files %%%%%%%%%%%%%%%%%%%</a></li><li><a href="#6">Functions</a></li></ul></div><pre class="codeinput"><span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">%   MAE C263C Project</span>
+<span class="comment">%   Keybot - The 1 finger speed racer, that can&#8217;t press shift.</span>
+<span class="comment">%</span>
+<span class="comment">%   Authors:        Will, Gabriel, Jake, and Juan</span>
+<span class="comment">%   Date:           5/3/2022</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+close <span class="string">all</span>; clear; clc;
+</pre><h2 id="2">Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</h2><p>Variables you probably want to change</p><pre class="codeinput">port = <span class="string">"COM8"</span>;
+desired_string = <span class="string">'avalon avalon avalon'</span>; <span class="comment">% Chose what you want to be typed</span>
+<span class="comment">% desired_string = 'avalon'; % Chose what you want to be typed</span>
+<span class="comment">% desired_string = 'the quick brown fox jumps over the lazy dog'; %Full strings</span>
+
+connectedTeensy = serialport(port, 115200); <span class="comment">%Need to select the right port</span>
+
+<span class="comment">% Startup and enable motors</span>
+readAllData(connectedTeensy);
+connectedTeensy.writeline(<span class="string">'EN'</span>);
+</pre><pre class="codeoutput error">Error using serialport
+Unable to connect to the serialport device at port 'COM8'. Verify that a device is connected to the port, the port is not in use, and all serialport input
+arguments and parameter values are supported by the device.
+See &lt;a href="matlab: helpview(fullfile(docroot,'matlab','helptargets.map'), 'serialport_connectError')"&gt;related documentation&lt;/a&gt; for troubleshooting steps.
+
+Error in Typer_GUI_test (line 19)
+connectedTeensy = serialport(port, 115200); %Need to select the right port
+</pre><h2 id="3">Start up the GUI</h2><pre class="codeinput">keybot = KeybotInterface;
+keybot.matlabFileTimer = 1; <span class="comment">% Toggle to use file rather than app timer.</span>
+keybot.TexttotypeTextArea.Value = desired_string; <span class="comment">% Get string to be typed</span>
+
+<span class="comment">% Set initial pose of arm</span>
+connectedTeensy.writeline(<span class="string">'S_K Q'</span>);
+readAllData(connectedTeensy);
+
+
+<span class="keyword">while</span>(~keybot.timerActive)
+    pause(0.5)
+<span class="keyword">end</span>
+</pre><h2 id="4">Run loop to collect letters pressed</h2><pre class="codeinput">key_pressed = keybot.currLetter; <span class="comment">% Get current pressed key</span>
+curr_key_count = keybot.keyCounter; <span class="comment">% Get current keyboard click count</span>
+desired_letter_pos = 1; <span class="comment">%Start with the first letter</span>
+backspaces_needed = 0; <span class="comment">%Initialize</span>
+focus(keybot.TypehereTextArea);
+stopwatch_tic = tic; fprintf(<span class="string">"Starting timer\n"</span>); <span class="comment">% Just in case</span>
+
+<span class="comment">% Send the first letter. Robot starts moving, and we enter the loop</span>
+tempcmd = sprintf(<span class="string">"connectedTeensy.writeline('S_K %s');"</span>, desired_string(desired_letter_pos));
+eval(tempcmd);
+fprintf(<span class="string">"Initial desired Letter: '%s'.\n"</span>, desired_string(desired_letter_pos));
+
+<span class="comment">% Runs and listens to input until timer hits 0 or the "End" button is pressed.</span>
+<span class="keyword">while</span> true
+
+    pause(0.001); <span class="comment">% Helps the UI actually run. Lower means faster</span>
+
+    <span class="comment">% We only go into this loop whenever a key is pressed.</span>
+    <span class="keyword">if</span> keybot.keyCounter == curr_key_count <span class="comment">%&amp;&amp; keybot.timerActive == 1</span>
+<span class="comment">%         fprintf("Skipping Check, no key pressed. curr_key_count = %d\n", curr_key_count);</span>
+    <span class="keyword">elseif</span> keybot.keyCounter &gt; curr_key_count <span class="comment">%&amp;&amp; keybot.timerActive == 1</span>
+        curr_key_count = keybot.keyCounter; <span class="comment">% Increment key counter if key was pressed</span>
+        key_pressed = keybot.currLetter; <span class="comment">% Get current pressed key</span>
+        <span class="keyword">if</span> backspaces_needed == 0
+            <span class="keyword">if</span> key_pressed == desired_string(desired_letter_pos)
+                desired_letter_pos = desired_letter_pos + 1;
+                <span class="keyword">if</span> desired_letter_pos &gt; length(desired_string); fprintf(<span class="string">"Good work. You're done!\n"</span>); keybot.timerActive = 0; <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% Check if you won!</span>
+                fprintf(<span class="string">"Success, moving to next letter. New desired Letter: '%s'.\n"</span>, desired_string(desired_letter_pos));
+            <span class="keyword">elseif</span> key_pressed == <span class="string">"space"</span> &amp;&amp; desired_string(desired_letter_pos) == <span class="string">" "</span>
+                desired_letter_pos = desired_letter_pos + 1;
+                <span class="keyword">if</span> desired_letter_pos &gt; length(desired_string); fprintf(<span class="string">"Good work. You're done!\n"</span>); keybot.timerActive = 0; <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% Check if you won!</span>
+                fprintf(<span class="string">"Successful 'space', moving to next letter. New desired Letter: '%s'.\n"</span>, desired_string(desired_letter_pos));
+            <span class="keyword">elseif</span> key_pressed == <span class="string">"backspace"</span> &amp;&amp; backspaces_needed == 0
+                desired_letter_pos = desired_letter_pos - 1;
+                fprintf(<span class="string">"Unsuccessful 'backspace', moving to previous letter. New desired Letter: '%s'.\n"</span>, desired_string(desired_letter_pos));
+            <span class="keyword">else</span>
+                backspaces_needed = backspaces_needed + 1;
+                fprintf(<span class="string">"Wrong letter, backspaces_needed = %d\n"</span>, backspaces_needed);
+            <span class="keyword">end</span>
+        <span class="keyword">elseif</span> key_pressed == <span class="string">"backspace"</span> &amp;&amp; backspaces_needed &gt; 0
+                backspaces_needed = backspaces_needed -1;
+                <span class="keyword">if</span> backspaces_needed &gt; 0
+                    fprintf(<span class="string">"Additional backspaces_needed = %d\n"</span>, backspaces_needed);
+                <span class="keyword">elseif</span> backspaces_needed == 0
+                    fprintf(<span class="string">"Successful 'backspaces', moving to previous letter. New desired Letter: '%s'.\n"</span>, desired_string(desired_letter_pos));
+                <span class="keyword">end</span>
+        <span class="keyword">else</span>
+            backspaces_needed = backspaces_needed + 1;
+            fprintf(<span class="string">"Wrong letter, backspaces_needed = %d\n"</span>, backspaces_needed);
+        <span class="keyword">end</span>
+
+        <span class="comment">% Here we tell the robot to press the desired_letter</span>
+        <span class="keyword">if</span> backspaces_needed &gt; 0
+            tempcmd = sprintf(<span class="string">"connectedTeensy.writeline('S_K 2');"</span>);
+            fprintf(<span class="string">"Told robot to backspace\n"</span>);
+            eval(tempcmd);
+        <span class="keyword">elseif</span> backspaces_needed == 0
+            <span class="keyword">if</span> desired_string(desired_letter_pos) == <span class="string">" "</span>
+                tempcmd = sprintf(<span class="string">"connectedTeensy.writeline('S_K 1');"</span>);
+                eval(tempcmd);
+                fprintf(<span class="string">"Told robot to hit: 'space'.\n"</span>);
+            <span class="keyword">else</span>
+                tempcmd = sprintf(<span class="string">"connectedTeensy.writeline('S_K %s');"</span>, desired_string(desired_letter_pos));
+                eval(tempcmd);
+                fprintf(<span class="string">"Told robot to hit: '%s'.\n"</span>, desired_string(desired_letter_pos));
+            <span class="keyword">end</span>
+        <span class="keyword">else</span>
+            error(<span class="string">"backspaces_needed is negative"</span>)
+        <span class="keyword">end</span>
+<span class="comment">%             readAllData(connectedTeensy);</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% --------------------------------------------------------------------</span>
+    <span class="comment">% ---------------- Below is simply for timer purposes ----------------</span>
+    <span class="comment">% --------------------------------------------------------------------</span>
+    <span class="keyword">if</span> keybot.timerActive == 1
+        <span class="keyword">if</span> keybot.timerStarted == 0
+            timer_tic = tic; start_time = keybot.timeLeft; keybot.timerStarted = 1;
+        <span class="keyword">end</span>
+        elapsed_time = toc(timer_tic);
+        <span class="keyword">if</span> keybot.timeLeft &gt; 0
+            keybot.timeLeft = start_time - elapsed_time;
+        <span class="keyword">else</span>
+            keybot.timerActive = 0;
+            keybot.timerStarted = 0;
+            keybot.TimeLeftsecEditField.Value = <span class="string">"0"</span>;
+        <span class="keyword">end</span>
+        keybot.TimeLeftsecEditField.Value = num2str(floor(keybot.timeLeft));
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> keybot.timeLeft == 0; <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% End the loop once time reaches 0.</span>
+<span class="keyword">end</span>
+endtime = toc(stopwatch_tic);
+fprintf(<span class="string">"Game over! Time_elapsed = %.2f.\n"</span>, endtime);
+pause(2); <span class="comment">% Pause to read time.</span>
+</pre><h2 id="5">End connection with Teensy: Disable and close files %%%%%%%%%%%%%%%%%%%</h2><pre class="codeinput">connectedTeensy.writeline(<span class="string">'OFF'</span>);
+readAllData(connectedTeensy);
+
+<span class="comment">% Close everything</span>
+keybot.delete;
+connectedTeensy = [];
+
+fprintf(<span class="string">"Game over! Time_elapsed = %.2f.\n"</span>, endtime);
+</pre><h2 id="6">Functions</h2><pre class="codeinput"><span class="keyword">function</span> readAllData(connectedTeensy)
+<span class="comment">%Read All Data. Reads incoming data from Teensy until no bytes left.</span>
+    <span class="keyword">while</span>(connectedTeensy.NumBytesAvailable &gt; 0)
+        fprintf(connectedTeensy.readline());
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   MAE C263C Project
+%   Keybot - The 1 finger speed racer, that can’t press shift.
+%
+%   Authors:        Will, Gabriel, Jake, and Juan
+%   Date:           5/3/2022
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+close all; clear; clc;
+
+%% Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Variables you probably want to change
+port = "COM8";
+desired_string = 'avalon avalon avalon'; % Chose what you want to be typed
+% desired_string = 'avalon'; % Chose what you want to be typed
+% desired_string = 'the quick brown fox jumps over the lazy dog'; %Full strings
+
+connectedTeensy = serialport(port, 115200); %Need to select the right port
+
+% Startup and enable motors
+readAllData(connectedTeensy);
+connectedTeensy.writeline('EN');
+
+%% Start up the GUI
+keybot = KeybotInterface;
+keybot.matlabFileTimer = 1; % Toggle to use file rather than app timer.
+keybot.TexttotypeTextArea.Value = desired_string; % Get string to be typed
+
+% Set initial pose of arm
+connectedTeensy.writeline('S_K Q');
+readAllData(connectedTeensy);
+
+
+while(~keybot.timerActive)
+    pause(0.5)
+end
+
+%% Run loop to collect letters pressed
+key_pressed = keybot.currLetter; % Get current pressed key
+curr_key_count = keybot.keyCounter; % Get current keyboard click count
+desired_letter_pos = 1; %Start with the first letter
+backspaces_needed = 0; %Initialize
+focus(keybot.TypehereTextArea);
+stopwatch_tic = tic; fprintf("Starting timer\n"); % Just in case
+
+% Send the first letter. Robot starts moving, and we enter the loop
+tempcmd = sprintf("connectedTeensy.writeline('S_K %s');", desired_string(desired_letter_pos));
+eval(tempcmd);
+fprintf("Initial desired Letter: '%s'.\n", desired_string(desired_letter_pos));
+
+% Runs and listens to input until timer hits 0 or the "End" button is pressed.
+while true 
+    
+    pause(0.001); % Helps the UI actually run. Lower means faster
+    
+    % We only go into this loop whenever a key is pressed.
+    if keybot.keyCounter == curr_key_count %&& keybot.timerActive == 1
+%         fprintf("Skipping Check, no key pressed. curr_key_count = %d\n", curr_key_count);
+    elseif keybot.keyCounter > curr_key_count %&& keybot.timerActive == 1
+        curr_key_count = keybot.keyCounter; % Increment key counter if key was pressed
+        key_pressed = keybot.currLetter; % Get current pressed key
+        if backspaces_needed == 0
+            if key_pressed == desired_string(desired_letter_pos)
+                desired_letter_pos = desired_letter_pos + 1;                
+                if desired_letter_pos > length(desired_string); fprintf("Good work. You're done!\n"); keybot.timerActive = 0; break; end % Check if you won!
+                fprintf("Success, moving to next letter. New desired Letter: '%s'.\n", desired_string(desired_letter_pos));
+            elseif key_pressed == "space" && desired_string(desired_letter_pos) == " "
+                desired_letter_pos = desired_letter_pos + 1;
+                if desired_letter_pos > length(desired_string); fprintf("Good work. You're done!\n"); keybot.timerActive = 0; break; end % Check if you won!
+                fprintf("Successful 'space', moving to next letter. New desired Letter: '%s'.\n", desired_string(desired_letter_pos));
+            elseif key_pressed == "backspace" && backspaces_needed == 0
+                desired_letter_pos = desired_letter_pos - 1;
+                fprintf("Unsuccessful 'backspace', moving to previous letter. New desired Letter: '%s'.\n", desired_string(desired_letter_pos));
+            else
+                backspaces_needed = backspaces_needed + 1;
+                fprintf("Wrong letter, backspaces_needed = %d\n", backspaces_needed);
+            end
+        elseif key_pressed == "backspace" && backspaces_needed > 0
+                backspaces_needed = backspaces_needed -1;
+                if backspaces_needed > 0
+                    fprintf("Additional backspaces_needed = %d\n", backspaces_needed);
+                elseif backspaces_needed == 0
+                    fprintf("Successful 'backspaces', moving to previous letter. New desired Letter: '%s'.\n", desired_string(desired_letter_pos));
+                end
+        else 
+            backspaces_needed = backspaces_needed + 1;
+            fprintf("Wrong letter, backspaces_needed = %d\n", backspaces_needed);
+        end
+    
+        % Here we tell the robot to press the desired_letter
+        if backspaces_needed > 0
+            tempcmd = sprintf("connectedTeensy.writeline('S_K 2');");
+            fprintf("Told robot to backspace\n");
+            eval(tempcmd);
+        elseif backspaces_needed == 0
+            if desired_string(desired_letter_pos) == " "
+                tempcmd = sprintf("connectedTeensy.writeline('S_K 1');");
+                eval(tempcmd);
+                fprintf("Told robot to hit: 'space'.\n");
+            else
+                tempcmd = sprintf("connectedTeensy.writeline('S_K %s');", desired_string(desired_letter_pos));
+                eval(tempcmd);
+                fprintf("Told robot to hit: '%s'.\n", desired_string(desired_letter_pos));
+            end
+        else
+            error("backspaces_needed is negative")
+        end
+%             readAllData(connectedTeensy);
+    end
+
+    % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+    % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Below is simply for timer purposes REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+    % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+    if keybot.timerActive == 1
+        if keybot.timerStarted == 0
+            timer_tic = tic; start_time = keybot.timeLeft; keybot.timerStarted = 1;
+        end
+        elapsed_time = toc(timer_tic);
+        if keybot.timeLeft > 0
+            keybot.timeLeft = start_time - elapsed_time;
+        else
+            keybot.timerActive = 0;
+            keybot.timerStarted = 0;
+            keybot.TimeLeftsecEditField.Value = "0";
+        end
+        keybot.TimeLeftsecEditField.Value = num2str(floor(keybot.timeLeft));
+    end
+
+    if keybot.timeLeft == 0; break; end % End the loop once time reaches 0.
+end
+endtime = toc(stopwatch_tic);
+fprintf("Game over! Time_elapsed = %.2f.\n", endtime);
+pause(2); % Pause to read time.
+
+%% End connection with Teensy: Disable and close files %%%%%%%%%%%%%%%%%%%
+connectedTeensy.writeline('OFF');
+readAllData(connectedTeensy);
+
+% Close everything
+keybot.delete;
+connectedTeensy = [];
+
+fprintf("Game over! Time_elapsed = %.2f.\n", endtime);
+
+%% Functions
+function readAllData(connectedTeensy) 
+%Read All Data. Reads incoming data from Teensy until no bytes left.
+    while(connectedTeensy.NumBytesAvailable > 0) 
+        fprintf(connectedTeensy.readline());
+    end
+end
+
+##### SOURCE END #####
+--></body></html>
