@@ -50,9 +50,14 @@ namespace Controller {
 //  float Ki_arr[2] = {0.2, 0.2};
 
   // TS gains
-  float Kp_arr[2] = {10000, 10000};
-  float Kd_arr[2] = {200, 200};
-  float Ki_arr[2] = {100, 100};
+  float Kp_arr[2] = {25000, 22500};
+  float Kd_arr[2] = {10, 10};
+  float Ki_arr[2] = {30, 30};
+
+  // ID gains
+//  float Kp_arr[2] = {15000, 15000};
+//  float Kd_arr[2] = {80, 80};
+//  float Ki_arr[2] = {0, 0};
   
   Eigen::Matrix2f Kp;
   Eigen::Matrix2f Kd;
@@ -81,6 +86,7 @@ namespace Controller {
 
         // The controller to run
         simplePID_TS();
+        //ID_TS();
       }
       
       // Update the current state
@@ -188,37 +194,69 @@ namespace Controller {
     }
     memcpy(&p_arr[0], &Kine::last_p[0], 2*sizeof(float));
 
-    //Serial.print("p_des: ");
-    //Serial.print(p_des(0));
-    //Serial.print(",");
-    //Serial.println(p_des(1));
-
     // Convert joint velocities to task space
-    Dyn::calculateJacobian(&q_arr[0]);
+    Dyn::calculateJacobian(q);
     dp = Dyn::J * dq;
     dp_des = Dyn::J * dq_des;
-
-    //Serial.print("dp_des: ");
-    //Serial.print(dp_des(0));
-    //Serial.print(",");
-    //Serial.println(dp_des(1));
   
     // Data is accessed using the Eigen::Map vector objects
     p_err = (p_des - p);
     p_err_int = p_err + p_err_int;
-    
-    //Serial.print("p_err: ");
-    //Serial.print(p_err(0), 3);
-    //Serial.print(",");
-    //Serial.println(p_err(1), 3);
         
     if( (dp.norm() > P_VEL_THRESH) || (p_err.norm() > P_ERR_THRESH) ) {
       v = Kp*p_err + Kd*(dp_des - dp) + Ki*p_err_int;
 
-      //Serial.print("v: ");
-      //Serial.println(v(0));
       // Convert back to joint space
-      v = Dyn::J_T * v;
+      v = Dyn::J.transpose() * v;
+      
+      Arm::setV(&v_arr[0]);
+    } else { // Goal is reached, stop the arm and press the key
+      v_arr[0] = 0;
+      v_arr[1] = 0;
+      Arm::setV(&v_arr[0]);
+      
+      p_err_int(0) = 0;
+      p_err_int(1) = 0;
+      goal_reached = true;
+      if(Traj::traj_finished) {
+        Arm::pressKey();
+      }
+    }
+  }
+
+  /*
+   * Inverse dynamics task space controller
+   */
+  void ID_TS() {
+
+    // Convert joint angles to task space
+    if(!Kine::fkine(&q_arr[0])) {
+      Serial.println("Inverse kinematics failed :(");
+      return;
+    }
+    memcpy(&p_arr[0], &Kine::last_p[0], 2*sizeof(float));
+
+    // Update the dynamics model
+    Dyn::updateDynamics(q, dq); 
+
+    // Convert joint velocities to task space
+    dp = Dyn::J * dq;
+    dp_des = Dyn::J * dq_des;
+    ddp_des = Dyn::J * ddq_des + Dyn::J_dot * dq_des;
+  
+    // Data is accessed using the Eigen::Map vector objects
+    p_err = (p_des - p);
+        
+    if( (dp.norm() > P_VEL_THRESH) || (p_err.norm() > P_ERR_THRESH) ) {
+      Eigen::Vector2f y = Dyn::J_inv * (ddp_des + Kd*(dp_des - dp) + Kp*p_err - Dyn::J_dot*dq);
+
+      v = Dyn::B*y + Dyn::N;
+
+//      Serial.print(p_err[0]);
+//      Serial.print(",");
+//      Serial.print(y(0));
+//      Serial.print(",");
+//      Serial.println(v(0));
       
       Arm::setV(&v_arr[0]);
     } else { // Goal is reached, stop the arm and press the key

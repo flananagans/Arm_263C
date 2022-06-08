@@ -11,7 +11,7 @@ close all; clear; clc;
 
 %% Connect to Teensy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Variables you probably want to change
-port = "COM8";
+port = "COM5"
 desired_string = 'avalon avalon avalon'; % Chose what you want to be typed
 % desired_string = 'avalon'; % Chose what you want to be typed
 % desired_string = 'the quick brown fox jumps over the lazy dog'; %Full strings
@@ -24,7 +24,7 @@ connectedTeensy.writeline('EN');
 
 %% Start up the GUI
 keybot = KeybotInterface;
-keybot.matlabFileTimer = 1; % Toggle to use file rather than app timer.
+keybot.matlabFileTimer = 1; % Toggle qto use file rather than app timer.
 keybot.TexttotypeTextArea.Value = desired_string; % Get string to be typed
 
 % Set initial pose of arm
