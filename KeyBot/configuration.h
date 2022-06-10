@@ -59,6 +59,6 @@
 #define FIRMWARE_INFO "KeyBot v0.1" TOSTRING(FIRMWARE_VERSION)
 
 // Enable SD Card
-#define SDCARD true
+#define SDCARD false
 
 #endif

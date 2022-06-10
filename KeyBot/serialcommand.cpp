@@ -42,7 +42,7 @@ namespace SerialCom {
     sCmd.addCommand("P_K", pressKey); // press a key
     sCmd.addCommand("OFF", turnOff); // Turn off stuff
     
-    sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?")
+    sCmd.setDefaultHandler(unrecognized);  // Handler for command that isn't matched
     Serial.println("Serial Commands are ready");
 
     // create task at priority one
